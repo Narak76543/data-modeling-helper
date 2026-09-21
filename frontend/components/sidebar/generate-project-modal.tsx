@@ -61,9 +61,9 @@ export function GenerateProjectModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 select-none backdrop-blur-sm">
       <div className="w-full max-w-lg bg-surface border border-ink/30 dark:border-ink-muted/30 text-ink rounded-[2px] flex flex-col shadow-xl">
         {/* Header */}
-        <div className="px-4 py-3 border-b border-ink/20 flex items-center justify-between">
+        <div className="px-4 py-3 border-b border-ink/20 dark:border-ink-muted/20 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="p-1 bg-accent/10 border border-accent/30 rounded-[2px] text-accent">
+            <div className="p-1 bg-accent/10 border border-accent/20 dark:border-accent/25 rounded-[2px] text-accent">
               <Layers className="w-4 h-4" />
             </div>
             <h2 className="text-sm font-sans font-semibold text-ink">
@@ -81,7 +81,7 @@ export function GenerateProjectModal({
         </div>
 
         {/* Educational Notice Banner (FR-22) */}
-        <div className="px-4 py-2.5 bg-accent/5 border-b border-ink/10 flex items-start space-x-2.5 text-[11px] text-ink-muted leading-relaxed">
+        <div className="px-4 py-2.5 bg-accent/5 border-b border-ink/10 dark:border-ink-muted/15 flex items-start space-x-2.5 text-[11px] text-ink-muted leading-relaxed">
           <Lightbulb className="w-4 h-4 text-accent shrink-0 mt-0.5" />
           <span>
             <strong>Teaching-First Tool:</strong> AI generates a starting architectural draft (4–8 tables with relationships). You can review cross-table links, edit fields inline, and refine before committing.
@@ -90,7 +90,7 @@ export function GenerateProjectModal({
 
         {/* Error Alert */}
         {error && (
-          <div className="px-4 py-2 bg-error/10 border-b border-error/20 flex items-center space-x-2 text-xs font-mono text-error">
+          <div className="px-4 py-2 bg-error/10 border-b border-error/20 dark:border-error/30 flex items-center space-x-2 text-xs font-mono text-error">
             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
             <span>{error}</span>
           </div>
@@ -109,7 +109,7 @@ export function GenerateProjectModal({
               placeholder="e.g. University course registration system with students, departments, courses, prerequisites, and semesters"
               required
               disabled={isLoading}
-              className="w-full text-xs px-3 py-2 bg-bg border border-ink/30 text-ink rounded-[2px] focus:outline-none focus:border-accent disabled:opacity-50 resize-none font-sans"
+              className="w-full text-xs px-3 py-2 bg-bg border border-ink/30 dark:border-ink-muted/30 text-ink rounded-[2px] focus:outline-none focus:border-accent disabled:opacity-50 resize-none font-sans"
             />
           </div>
 
@@ -125,7 +125,7 @@ export function GenerateProjectModal({
                   type="button"
                   onClick={() => setPrompt(p)}
                   disabled={isLoading}
-                  className="w-full text-left text-[11px] text-ink-muted hover:text-ink px-2 py-1 bg-bg hover:bg-ink/5 border border-ink/10 rounded-[2px] truncate transition-colors"
+                  className="w-full text-left text-[11px] text-ink-muted hover:text-ink px-2 py-1 bg-bg hover:bg-ink/5 dark:hover:bg-surface border border-ink/10 dark:border-ink-muted/20 rounded-[2px] truncate transition-colors"
                 >
                   &rarr; {p}
                 </button>
@@ -135,19 +135,19 @@ export function GenerateProjectModal({
 
           {/* Loading step status */}
           {isLoading && (
-            <div className="p-2.5 bg-accent/5 border border-accent/20 rounded-[2px] flex items-center space-x-2 text-xs font-mono text-accent animate-pulse">
+            <div className="p-2.5 bg-accent/5 border border-accent/20 dark:border-accent/25 rounded-[2px] flex items-center space-x-2 text-xs font-mono text-accent animate-pulse">
               <Sparkles className="w-3.5 h-3.5 shrink-0 animate-spin" />
               <span>{loadingStep || "Generating relational schema draft..."}</span>
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex items-center justify-end space-x-2 pt-2 border-t border-ink/10">
+          <div className="flex items-center justify-end space-x-2 pt-2 border-t border-ink/10 dark:border-ink-muted/15">
             <button
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="py-1 px-3 bg-surface hover:bg-bg text-ink border border-ink/30 text-xs rounded-[2px] transition-colors disabled:opacity-40"
+              className="py-1 px-3 bg-surface hover:bg-bg text-ink border border-ink/30 dark:border-ink-muted/30 text-xs rounded-[2px] transition-colors disabled:opacity-40"
             >
               Cancel
             </button>

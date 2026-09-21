@@ -55,7 +55,7 @@ export function Sidebar({
 
   if (collapsed) {
     return (
-      <aside className="w-8 border-r border-ink/20 bg-surface flex flex-col items-center py-3 select-none">
+      <aside className="w-8 border-r border-ink/20 dark:border-ink-muted/30 bg-surface flex flex-col items-center py-3 select-none">
         <button
           onClick={() => setCollapsed(false)}
           className="p-1 text-ink-muted hover:text-ink transition-colors"
@@ -68,10 +68,10 @@ export function Sidebar({
   }
 
   return (
-    <aside className="w-[230px] border-r border-ink/20 bg-surface flex flex-col justify-between select-none h-[calc(100vh-44px)]">
+    <aside className="w-[230px] border-r border-ink/20 dark:border-ink-muted/30 bg-surface flex flex-col justify-between select-none h-[calc(100vh-44px)]">
       {/* Top section: Entities list & Add Actions */}
       <div className="flex flex-col flex-1 overflow-y-auto">
-        <div className="p-3 border-b border-ink/10 flex items-center justify-between">
+        <div className="p-3 border-b border-ink/10 dark:border-ink-muted/15 flex items-center justify-between">
           <span className="text-xs font-semibold text-ink uppercase tracking-wider">
             Entities ({nodes.length})
           </span>
@@ -85,7 +85,7 @@ export function Sidebar({
         </div>
 
         {/* Action Buttons */}
-        <div className="p-2.5 space-y-1.5 border-b border-ink/10">
+        <div className="p-2.5 space-y-1.5 border-b border-ink/10 dark:border-ink-muted/15">
           {/* Primary Action: Add Entity */}
           <button
             type="button"
@@ -103,7 +103,7 @@ export function Sidebar({
               setShowAiInput(!showAiInput);
               setAiError(null);
             }}
-            className="w-full flex items-center justify-center space-x-1.5 bg-surface hover:bg-bg text-accent border border-accent/40 text-xs font-medium py-1.5 px-3 rounded-[2px] transition-colors"
+            className="w-full flex items-center justify-center space-x-1.5 bg-surface hover:bg-bg text-accent border border-ink/20 dark:border-ink-muted/30 hover:border-ink dark:hover:border-ink-muted/50 text-xs font-medium py-1.5 px-3 rounded-[2px] transition-colors"
           >
             <Sparkles className="w-3.5 h-3.5 text-accent" />
             <span>Add Table with AI</span>
@@ -113,7 +113,7 @@ export function Sidebar({
           <button
             type="button"
             onClick={onOpenProjectModal}
-            className="w-full flex items-center justify-center space-x-1.5 bg-accent/10 hover:bg-accent/20 text-accent border border-accent/30 text-xs font-medium py-1.5 px-3 rounded-[2px] transition-colors"
+            className="w-full flex items-center justify-center space-x-1.5 bg-accent/10 hover:bg-accent/20 text-accent border border-accent/20 dark:border-ink-muted/30 text-xs font-medium py-1.5 px-3 rounded-[2px] transition-colors"
             title="Generate a multi-table relational draft for a full project"
           >
             <Sparkles className="w-3.5 h-3.5 text-accent" />
@@ -122,7 +122,7 @@ export function Sidebar({
 
           {/* Inline AI Prompt Input */}
           {showAiInput && (
-            <form onSubmit={handleAiGenerate} className="mt-2 p-2 bg-bg border border-ink/20 rounded-[2px] space-y-1.5">
+            <form onSubmit={handleAiGenerate} className="mt-2 p-2 bg-bg border border-ink/20 dark:border-ink-muted/30 rounded-[2px] space-y-1.5">
               <div className="text-[10px] font-mono text-ink-muted">Describe table (single):</div>
               <input
                 type="text"
@@ -130,7 +130,7 @@ export function Sidebar({
                 onChange={(e) => setAiPrompt(e.target.value)}
                 placeholder="e.g. address table"
                 disabled={isGenerating}
-                className="w-full text-xs font-mono bg-surface border border-ink/30 px-2 py-1 outline-none text-ink rounded-none placeholder:text-ink-muted/50"
+                className="w-full text-xs font-mono bg-surface border border-ink/30 dark:border-ink-muted/30 px-2 py-1 outline-none text-ink rounded-none placeholder:text-ink-muted/50"
                 autoFocus
               />
 
@@ -215,10 +215,10 @@ export function Sidebar({
       </div>
 
       {/* Bottom section: Real-time validation summary */}
-      <div className="border-t border-ink/10 bg-bg flex flex-col max-h-[220px]">
+      <div className="border-t border-ink/10 dark:border-ink-muted/15 bg-bg flex flex-col max-h-[220px]">
         <div
           onClick={() => setShowIssues(!showIssues)}
-          className="p-2.5 flex items-center justify-between cursor-pointer hover:bg-ink/5 transition-colors"
+          className="p-2.5 flex items-center justify-between cursor-pointer hover:bg-ink/5 dark:hover:bg-surface/50 transition-colors"
         >
           {errors === 0 && warnings === 0 ? (
             <div className="flex items-center space-x-1.5 text-xs text-success font-medium">
@@ -248,14 +248,14 @@ export function Sidebar({
 
         {/* Expandable issues list */}
         {showIssues && issues.length > 0 && (
-          <div className="px-2.5 pb-2.5 space-y-1.5 overflow-y-auto max-h-[140px] text-[11px] font-mono border-t border-ink/5 pt-1.5">
+          <div className="px-2.5 pb-2.5 space-y-1.5 overflow-y-auto max-h-[140px] text-[11px] font-mono border-t border-ink/10 dark:border-ink-muted/15 pt-1.5">
             {issues.map((issue, idx) => (
               <div
                 key={idx}
                 className={`p-1.5 rounded-[2px] leading-tight ${
                   issue.severity === "error"
-                    ? "bg-error/10 text-error border border-error/20"
-                    : "bg-surface text-ink border border-ink/10"
+                    ? "bg-error/10 text-error border border-error/20 dark:border-error/30"
+                    : "bg-surface text-ink border border-ink/10 dark:border-ink-muted/20"
                 }`}
               >
                 <div className="font-semibold text-[10px] uppercase tracking-wider mb-0.5 opacity-80">

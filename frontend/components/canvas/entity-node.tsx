@@ -90,49 +90,49 @@ export function EntityNodeComponent({
         id="target-top"
         type="target"
         position={Position.Top}
-        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mt-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 dark:!border-ink-muted/40 !rounded-none -mt-[5px] hover:!bg-accent hover:!border-accent transition-colors"
       />
       <Handle
         id="source-top"
         type="source"
         position={Position.Top}
-        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mt-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 dark:!border-ink-muted/40 !rounded-none -mt-[5px] hover:!bg-accent hover:!border-accent transition-colors"
       />
       <Handle
         id="target-bottom"
         type="target"
         position={Position.Bottom}
-        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mb-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 dark:!border-ink-muted/40 !rounded-none -mb-[5px] hover:!bg-accent hover:!border-accent transition-colors"
       />
       <Handle
         id="source-bottom"
         type="source"
         position={Position.Bottom}
-        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mb-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 dark:!border-ink-muted/40 !rounded-none -mb-[5px] hover:!bg-accent hover:!border-accent transition-colors"
       />
       <Handle
         id="target-left"
         type="target"
         position={Position.Left}
-        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -ml-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 dark:!border-ink-muted/40 !rounded-none -ml-[5px] hover:!bg-accent hover:!border-accent transition-colors"
       />
       <Handle
         id="source-left"
         type="source"
         position={Position.Left}
-        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -ml-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 dark:!border-ink-muted/40 !rounded-none -ml-[5px] hover:!bg-accent hover:!border-accent transition-colors"
       />
       <Handle
         id="target-right"
         type="target"
         position={Position.Right}
-        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mr-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 dark:!border-ink-muted/40 !rounded-none -mr-[5px] hover:!bg-accent hover:!border-accent transition-colors"
       />
       <Handle
         id="source-right"
         type="source"
         position={Position.Right}
-        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mr-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 dark:!border-ink-muted/40 !rounded-none -mr-[5px] hover:!bg-accent hover:!border-accent transition-colors"
       />
 
       {/* Header: Collapse button, Entity Name, Badges & Action */}
@@ -141,8 +141,8 @@ export function EntityNodeComponent({
           !isCollapsed ? "border-b" : ""
         } ${
           isPreview
-            ? "bg-accent/10 border-accent/30"
-            : "bg-bg/60 border-ink/20"
+            ? "bg-accent/10 border-accent/30 dark:border-accent/25"
+            : "bg-bg/60 border-ink/20 dark:border-ink-muted/20"
         }`}
       >
         <div className="flex items-center space-x-1.5 flex-1 min-w-0">
@@ -264,7 +264,7 @@ export function EntityNodeComponent({
           )}
 
           {/* Field List Container (IBM Plex Mono) */}
-          <div className="divide-y divide-ink/10">
+          <div className="divide-y divide-ink/10 dark:divide-ink-muted/15">
             {fields.length === 0 ? (
               <div className="p-2.5 text-center">
                 <span className="text-[11px] font-mono text-ink-muted italic">
@@ -287,14 +287,14 @@ export function EntityNodeComponent({
           </div>
 
           {/* Card Footer: Add Field Action */}
-          <div className="border-t border-ink/10 bg-bg/50 p-1.5 flex items-center justify-between">
+          <div className="border-t border-ink/10 dark:border-ink-muted/15 bg-bg/50 p-1.5 flex items-center justify-between">
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 data.onAddField?.();
               }}
-              className="w-full flex items-center justify-center space-x-1 py-1 px-2 text-[11px] font-mono text-ink-muted hover:text-accent hover:bg-surface border border-dashed border-ink/20 hover:border-accent rounded-[2px] transition-all"
+              className="w-full flex items-center justify-center space-x-1 py-1 px-2 text-[11px] font-mono text-ink-muted hover:text-accent hover:bg-surface border border-dashed border-ink/20 dark:border-ink-muted/30 hover:border-accent dark:hover:border-accent rounded-[2px] transition-all"
             >
               <Plus className="w-3 h-3" />
               <span>Add Field</span>

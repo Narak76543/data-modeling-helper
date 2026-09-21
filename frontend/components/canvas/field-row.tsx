@@ -72,7 +72,7 @@ export function FieldRow({
 
   return (
     <div
-      className={`relative border-b border-ink/10 last:border-b-0 transition-colors ${
+      className={`relative border-b border-ink/10 dark:border-ink-muted/15 last:border-b-0 transition-colors ${
         issue
           ? issue.severity === "error"
             ? "bg-error/5"
@@ -234,7 +234,7 @@ export function FieldRow({
               onClick={() => onUpdate({ isUnique: !field.isUnique })}
               className={`text-[9px] px-1 py-0.2 font-mono font-bold rounded-[2px] transition-colors ${
                 field.isUnique
-                  ? "border border-ink text-ink"
+                  ? "border border-ink dark:border-ink-muted/60 text-ink"
                   : "text-ink-muted/40 hover:text-ink hover:bg-bg"
               }`}
               title="Toggle Unique (UQ)"
@@ -260,7 +260,7 @@ export function FieldRow({
 
       {/* FK Target Reference Selector Bar */}
       {field.isForeignKey && (
-        <div className="px-2.5 py-1 bg-bg/80 border-t border-ink/5 flex items-center justify-between text-[10px] font-mono text-ink-muted">
+        <div className="px-2.5 py-1 bg-bg/80 border-t border-ink/10 dark:border-ink-muted/15 flex items-center justify-between text-[10px] font-mono text-ink-muted">
           <span>→ Target:</span>
           <div className="flex items-center space-x-1">
             <select
@@ -273,7 +273,7 @@ export function FieldRow({
                   referencesFieldId: targetE?.data.fields[0]?.id || undefined,
                 });
               }}
-              className="text-[10px] font-mono bg-surface border border-ink/20 px-1 py-0.2 text-ink rounded-none outline-none max-w-[110px] truncate"
+              className="text-[10px] font-mono bg-surface border border-ink/20 dark:border-ink-muted/25 px-1 py-0.2 text-ink rounded-none outline-none max-w-[110px] truncate"
             >
               <option value="">(select entity)</option>
               {targetEntityCandidates.map((cand) => (
@@ -289,7 +289,7 @@ export function FieldRow({
                 onChange={(e) =>
                   onUpdate({ referencesFieldId: e.target.value || undefined })
                 }
-                className="text-[10px] font-mono bg-surface border border-ink/20 px-1 py-0.2 text-ink rounded-none outline-none max-w-[100px] truncate"
+                className="text-[10px] font-mono bg-surface border border-ink/20 dark:border-ink-muted/25 px-1 py-0.2 text-ink rounded-none outline-none max-w-[100px] truncate"
               >
                 <option value="">(select field)</option>
                 {targetFieldCandidates.map((f) => (
@@ -306,7 +306,7 @@ export function FieldRow({
       {/* Inline Field Issue Message */}
       {issue && (
         <div
-          className={`px-2.5 py-0.5 text-[10px] font-mono border-t border-ink/5 flex items-center space-x-1 ${
+          className={`px-2.5 py-0.5 text-[10px] font-mono border-t border-ink/10 dark:border-ink-muted/15 flex items-center space-x-1 ${
             issue.severity === "error" ? "text-error" : "text-ink-muted"
           }`}
         >
