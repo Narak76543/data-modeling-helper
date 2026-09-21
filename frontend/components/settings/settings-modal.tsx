@@ -1,9 +1,23 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { X, Key, Plus, Trash2, ArrowUp, ArrowDown, AlertCircle, CheckCircle, ShieldCheck } from "lucide-react";
+import {
+  X,
+  Key,
+  Plus,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  AlertCircle,
+  CheckCircle,
+  ShieldCheck,
+  Sun,
+  Moon,
+  Monitor,
+} from "lucide-react";
 import type { ApiKeyItem } from "@/types/settings";
 import { getApiKeys, createApiKey, deleteApiKey, reorderApiKeys } from "@/lib/api";
+import { useTheme, type ThemeMode } from "@/components/theme-provider";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -11,6 +25,7 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
+  const { theme, setTheme } = useTheme();
   const [keys, setKeys] = useState<ApiKeyItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,15 +119,20 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     }
   };
 
+  const themeOptions: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
+    { value: "system", label: "System", icon: <Monitor className="w-3.5 h-3.5" /> },
+    { value: "light", label: "Light", icon: <Sun className="w-3.5 h-3.5" /> },
+    { value: "dark", label: "Dark", icon: <Moon className="w-3.5 h-3.5" /> },
+  ];
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 select-none">
-      <div className="w-full max-w-xl bg-surface border border-ink text-ink rounded-[2px] flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 select-none backdrop-blur-sm">
+      <div className="w-full max-w-xl bg-surface border border-ink/30 text-ink rounded-[2px] flex flex-col max-h-[90vh] shadow-lg">
         {/* Header */}
         <div className="px-4 py-3 border-b border-ink/20 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Key className="w-4 h-4 text-accent" />
             <h2 className="text-sm font-sans font-semibold text-ink">
-              API Key Management
+              Settings & Preferences
             </h2>
           </div>
           <button
@@ -122,14 +142,6 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           >
             <X className="w-4 h-4" />
           </button>
-        </div>
-
-        {/* Security & Rotation Notice */}
-        <div className="px-4 py-2 bg-accent/5 border-b border-ink/10 flex items-start space-x-2 text-[11px] text-ink-muted">
-          <ShieldCheck className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-          <span>
-            Keys are encrypted at rest with AES-128-CBC and never exposed in plaintext. AI calls automatically rotate to the next key on rate-limit (429) or quota errors.
-          </span>
         </div>
 
         {/* Feedback Messages */}
@@ -148,14 +160,52 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         )}
 
         {/* Body */}
-        <div className="p-4 space-y-4 overflow-y-auto flex-1">
+        <div className="p-4 space-y-5 overflow-y-auto flex-1">
+          {/* Theme Preference (FR-27) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                Appearance & Theme
+              </span>
+              <span className="text-[10px] text-ink-muted">Blueprint Theme</span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 bg-bg p-1.5 border border-ink/20 rounded-[2px]">
+              {themeOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setTheme(opt.value)}
+                  className={`flex items-center justify-center space-x-1.5 py-1.5 px-3 text-xs font-medium rounded-[2px] transition-all ${
+                    theme === opt.value
+                      ? "bg-surface text-accent font-semibold border border-ink/20 shadow-sm"
+                      : "text-ink-muted hover:text-ink hover:bg-surface/50"
+                  }`}
+                >
+                  {opt.icon}
+                  <span>{opt.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="border-t border-ink/10" />
+
           {/* Key List Section */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
-                Configured Keys ({keys.length})
+                Gemini API Keys ({keys.length})
               </span>
               <span className="text-[10px] text-ink-muted">Ordered by Priority</span>
+            </div>
+
+            {/* Security & Rotation Notice */}
+            <div className="p-2.5 bg-accent/5 border border-ink/10 rounded-[2px] flex items-start space-x-2 text-[11px] text-ink-muted">
+              <ShieldCheck className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+              <span>
+                Keys are encrypted at rest with AES-128-CBC. AI generation automatically rotates to the next key on rate limits (429) or quota errors.
+              </span>
             </div>
 
             {isLoading ? (

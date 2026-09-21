@@ -10,6 +10,18 @@
   --color-accent: #1E3A5F;
   --color-error: #C0392B;
   --color-success: #3F7D58;
+  --color-grid: #DADDD9;
+}
+
+.dark {
+  --color-bg: #14181B;
+  --color-surface: #1D2226;
+  --color-ink: #E8EAEA;
+  --color-ink-muted: #8A9195;
+  --color-accent: #5B8DBF;
+  --color-error: #E0665A;
+  --color-success: #5FAE7C;
+  --color-grid: #262B2F;
 }
 
 body {
@@ -41,4 +53,3 @@ body {
 .react-flow__attribution {
   display: none !important;
 }
-
