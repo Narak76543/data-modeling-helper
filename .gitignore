@@ -1,0 +1,41 @@
+# Environments & credentials
+.env
+.env.local
+.env.*.local
+*.env
+*.env.local
+backend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# Node & Next.js
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+out/
+**/out/
+
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+**/venv/
+**/env/
+**/ENV/
+.pytest_cache/
+**/.pytest_cache/
+
+# Database & Logs
+*.sqlite3
+*.db
+*.log
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+

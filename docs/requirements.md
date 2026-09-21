@@ -1,0 +1,34 @@
+# Requirements — Data Modeling Helper
+
+Source of truth for what should and should not be built. If a requested feature isn't listed here, flag it before implementing (see `AGENTS.md`).
+
+## Functional Requirements (MVP)
+
+- [ ] FR-1: Create, edit, delete entities (tables) on a visual canvas
+- [ ] FR-2: Define fields per entity — name, data type, constraints
+- [ ] FR-3: Create relationships between entities with selectable cardinality (1:1, 1:many, many:many)
+- [ ] FR-4: Real-time validation — flag missing PK, orphan FK, naming issues, normalization concerns
+- [ ] FR-5: Auto-generate plain-language data dictionary from the model
+- [ ] FR-6: Export ERD as image/PDF and documentation as a readable file (e.g. Markdown/PDF)
+
+## Functional Requirements (Stretch — do not build before MVP is complete)
+
+- [ ] FR-7: Export SQL DDL for a target database dialect
+- [ ] FR-8: Comments/review workflow on entities and fields
+- [ ] FR-9: Model versioning / history
+- [ ] FR-10: In-app learning aids / tooltips explaining modeling concepts
+
+## Non-Functional Requirements
+
+- [ ] NFR-1: Usable without prior data modeling training
+- [ ] NFR-2: Canvas interactions feel instant for models up to ~30 tables
+- [ ] NFR-3: Works in current versions of major browsers
+- [ ] NFR-4: Reasonable keyboard/screen-reader support for core actions (evaluate feasibility)
+
+## Validation rules to implement (FR-4 detail)
+
+- [ ] Every entity has at least one primary key
+- [ ] Every foreign key references an existing entity/field
+- [ ] No orphan foreign keys (pointing to nothing)
+- [ ] Naming convention consistency (e.g. snake_case or camelCase, configurable)
+- [ ] Warn on likely normalization issues (e.g. repeating groups) — best-effort, not exhaustive
