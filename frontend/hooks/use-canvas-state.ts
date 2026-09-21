@@ -61,6 +61,8 @@ const INITIAL_NODES: EntityNode[] = [
           name: "user_id",
           dataType: "INTEGER",
           isForeignKey: true,
+          referencesEntityId: "entity-users",
+          referencesFieldId: "field-users-id",
           isNullable: false,
         },
       ],
@@ -139,6 +141,62 @@ export function useCanvasState() {
 
       return [...nds, newNode];
     });
+  }, []);
+
+  const addAiPreviewEntity = useCallback((entity: { name: string; fields: any[] }) => {
+    setNodes((nds) => {
+      const id = `ai-preview-${Date.now()}`;
+      const lastNode = nds[nds.length - 1];
+      const position = lastNode
+        ? { x: lastNode.position.x + 50, y: lastNode.position.y + 50 }
+        : { x: 200, y: 150 };
+
+      const previewFields: EntityField[] = entity.fields.map((f, idx) => ({
+        id: `field-ai-${Date.now()}-${idx}`,
+        name: f.name,
+        dataType: f.dataType,
+        isPrimaryKey: f.isPrimaryKey || false,
+        isNullable: f.isNullable !== undefined ? f.isNullable : true,
+        isUnique: f.isUnique || false,
+        defaultValue: f.defaultValue,
+      }));
+
+      const newPreviewNode: EntityNode = {
+        id,
+        type: "previewEntity",
+        position,
+        data: {
+          id,
+          name: entity.name,
+          fields: previewFields,
+          isPreview: true,
+        },
+      };
+
+      return [...nds, newPreviewNode];
+    });
+  }, []);
+
+  const commitPreviewEntity = useCallback((nodeId: string) => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            type: "entity",
+            data: {
+              ...node.data,
+              isPreview: false,
+            },
+          };
+        }
+        return node;
+      })
+    );
+  }, []);
+
+  const discardPreviewEntity = useCallback((nodeId: string) => {
+    setNodes((nds) => nds.filter((n) => n.id !== nodeId));
   }, []);
 
   const deleteEntity = useCallback((nodeId: string) => {
@@ -240,6 +298,9 @@ export function useCanvasState() {
     onEdgesChange,
     onConnect,
     addEntity,
+    addAiPreviewEntity,
+    commitPreviewEntity,
+    discardPreviewEntity,
     deleteEntity,
     renameEntity,
     addField,

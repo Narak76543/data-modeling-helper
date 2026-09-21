@@ -32,3 +32,17 @@ Source of truth for what should and should not be built. If a requested feature 
 - [ ] No orphan foreign keys (pointing to nothing)
 - [ ] Naming convention consistency (e.g. snake_case or camelCase, configurable)
 - [ ] Warn on likely normalization issues (e.g. repeating groups) — best-effort, not exhaustive
+## Functional Requirements (Stretch — AI-assisted modeling)
+
+- [ ] FR-11: "Add Entity with AI" — user provides a short prompt describing 
+      a single table (e.g. "address table"). System calls Gemini API and 
+      returns one entity with field names, SQL types, and constraints 
+      based on common real-world convention.
+- [ ] FR-12: AI-suggested entity renders as a preview (visually distinct 
+      from committed entities) before the user accepts it. User can edit 
+      fields inline before accepting.
+- [ ] FR-13: Accepted AI-suggested entities pass through the same 
+      addField/validation pipeline as manually created ones — no bypass.
+- [ ] FR-14: AI never generates relationships/foreign keys to other 
+      entities — only the fields of the single requested table. 
+      Relationships remain a manual user action.

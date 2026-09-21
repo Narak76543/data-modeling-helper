@@ -20,6 +20,11 @@ class Settings(BaseSettings):
     # Database Configuration
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/data_modeling_helper"
 
+    # Gemini AI Configuration
+    GEMINI_API_KEY: Union[str, None] = None
+    GEMINI_MODEL: str = "gemini-2.5-flash"
+
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
