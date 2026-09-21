@@ -1,6 +1,8 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
 
+from app.db.session import get_db
 from app.services.ai import AIGeneratedEntity, EntityAIGenerator
 
 router = APIRouter()
@@ -21,10 +23,13 @@ class GenerateEntityRequest(BaseModel):
     tags=["ai"],
     summary="Generate a single entity via Gemini AI",
 )
-async def generate_entity_with_ai(payload: GenerateEntityRequest) -> AIGeneratedEntity:
+async def generate_entity_with_ai(
+    payload: GenerateEntityRequest,
+    db: Session = Depends(get_db),
+) -> AIGeneratedEntity:
     """Generate a single relational database table schema from natural language prompt."""
     try:
-        entity = await EntityAIGenerator.generate_entity(payload.prompt)
+        entity = await EntityAIGenerator.generate_entity(payload.prompt, db=db)
         return entity
     except ValueError as ve:
         raise HTTPException(

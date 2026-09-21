@@ -46,3 +46,14 @@ Source of truth for what should and should not be built. If a requested feature 
 - [ ] FR-14: AI never generates relationships/foreign keys to other 
       entities — only the fields of the single requested table. 
       Relationships remain a manual user action.
+## Functional Requirements (Stretch — AI-assisted modeling)
+
+- [ ] FR-15: Settings screen where users can add, label, reorder, and 
+      delete their own Gemini API keys.
+- [ ] FR-16: Keys are stored encrypted at rest (never plaintext in the 
+      database), masked in the UI after saving, and never logged or 
+      returned in full via any API response.
+- [ ] FR-17: When calling Gemini for AI entity suggestions (FR-11), the 
+      system tries keys in priority order and falls back to the next 
+      key on rate-limit/quota/invalid-key errors, surfacing an error to 
+      the user only if all keys fail.

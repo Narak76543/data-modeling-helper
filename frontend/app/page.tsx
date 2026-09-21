@@ -6,11 +6,13 @@ import { Header } from "@/components/header/header";
 import { Sidebar } from "@/components/sidebar/sidebar";
 import { Canvas } from "@/components/canvas/canvas";
 import { ExportModal } from "@/components/export/export-modal";
+import { SettingsModal } from "@/components/settings/settings-modal";
 import { useCanvasState } from "@/hooks/use-canvas-state";
 import { validateModelClientSide } from "@/lib/validation";
 
 export default function WorkspacePage() {
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const {
     nodes,
@@ -50,7 +52,10 @@ export default function WorkspacePage() {
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-bg">
-      <Header onOpenExport={() => setIsExportOpen(true)} />
+      <Header
+        onOpenExport={() => setIsExportOpen(true)}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+      />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar
           nodes={nodes}
@@ -86,6 +91,11 @@ export default function WorkspacePage() {
         onClose={() => setIsExportOpen(false)}
         nodes={nodes}
         validationResult={validationResult}
+      />
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
       />
     </div>
   );

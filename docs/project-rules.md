@@ -51,3 +51,20 @@ Engineering and workflow rules for this repo. AI agents (Antigravity, etc.) must
 - The agent should not introduce a new library or architectural pattern without noting it in the `tech-stack.md` decisions log and flagging it to the team.
 - Prefer the simplest solution that satisfies the requirement — this is a thesis project on a timeline, not a production SaaS. Avoid over-engineering (e.g. no need for microservices, no premature caching layers).
 - When uncertain about intent or scope, ask rather than guessing.
+
+## API key handling (Gemini keys)
+
+- Keys are encrypted at rest in PostgreSQL (e.g. using a server-side 
+  encryption key from an environment variable, never hardcoded).
+- The database column storing keys is never returned in any API 
+  response body, including the user's own GET /settings/keys — return 
+  only the masked display value (e.g. last 4 characters) and a key ID.
+- Keys are never logged, including in error logs or stack traces — 
+  scrub them explicitly in any exception handling around the Gemini 
+  API call.
+- Only the backend calls Gemini directly — the frontend never holds a 
+  raw key in browser memory/state longer than the single form 
+  submission, and never sends it anywhere except the one save endpoint.
+- .env / .env.example must never contain a real key committed to git — 
+  confirmed already true for DB credentials in Phase 1, same rule 
+  applies here.
