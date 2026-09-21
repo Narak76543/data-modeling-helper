@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { X, Download, Copy, Check, FileText, Image as ImageIcon, AlertTriangle } from "lucide-react";
+import { X, Download, Copy, Check, FileText, Image as ImageIcon, AlertTriangle, FileSpreadsheet, Loader2 } from "lucide-react";
 import type { EntityNode, ValidationResult } from "@/types/canvas";
-import { generateClientMarkdown, downloadMarkdownFile, exportCanvasAsPng } from "@/lib/export";
+import { generateClientMarkdown, downloadMarkdownFile, exportCanvasAsPng, downloadFieldSpecExcel } from "@/lib/export";
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -20,6 +20,8 @@ export function ExportModal({
 }: ExportModalProps) {
   const [copied, setCopied] = useState(false);
   const [isExportingPng, setIsExportingPng] = useState(false);
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
+  const [excelError, setExcelError] = useState<string | null>(null);
 
   const markdownContent = useMemo(
     () => generateClientMarkdown(nodes, validationResult, "Data Modeling Helper Schema"),
@@ -49,11 +51,24 @@ export function ExportModal({
     }
   };
 
+  const handleDownloadExcel = async () => {
+    try {
+      setIsExportingExcel(true);
+      setExcelError(null);
+      await downloadFieldSpecExcel(nodes, "Data Modeling Helper Schema");
+    } catch (err: any) {
+      console.error("Failed to export Excel:", err);
+      setExcelError(err?.message || "Failed to export Excel field specification");
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
   const hasErrors = validationResult && !validationResult.isValid;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 select-none backdrop-blur-sm">
-      <div className="w-full max-w-2xl bg-surface border border-ink/30 dark:border-ink-muted/30 text-ink rounded-[2px] flex flex-col max-h-[90vh] shadow-xl">
+      <div className="w-full max-w-3xl bg-surface border border-ink/30 dark:border-ink-muted/30 text-ink rounded-[2px] flex flex-col max-h-[90vh] shadow-xl">
         {/* Modal Header */}
         <div className="px-4 py-3 border-b border-ink/20 dark:border-ink-muted/20 flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -81,10 +96,18 @@ export function ExportModal({
           </div>
         )}
 
+        {/* Excel Error Alert (if export fails) */}
+        {excelError && (
+          <div className="px-4 py-2 bg-error/10 border-b border-error/20 dark:border-error/30 flex items-center space-x-2 text-xs font-mono text-error">
+            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+            <span>{excelError}</span>
+          </div>
+        )}
+
         {/* Modal Body */}
         <div className="p-4 space-y-4 overflow-y-auto flex-1">
-          {/* Quick Export Actions */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Quick Export Actions (3-Card Grid) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* Markdown Export Box */}
             <div className="p-3 border border-ink/20 dark:border-ink-muted/25 bg-bg rounded-[2px] flex flex-col justify-between space-y-2">
               <div>
@@ -114,6 +137,41 @@ export function ExportModal({
                 >
                   {copied ? <Check className="w-3 h-3 text-success" /> : <Copy className="w-3 h-3" />}
                   <span>{copied ? "Copied" : "Copy"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Excel Field Spec Export Box (New Option) */}
+            <div className="p-3 border border-ink/20 dark:border-ink-muted/25 bg-bg rounded-[2px] flex flex-col justify-between space-y-2">
+              <div>
+                <div className="flex items-center space-x-1.5 text-xs font-semibold text-ink">
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-accent" />
+                  <span>Field Spec (Excel .xlsx)</span>
+                </div>
+                <p className="text-[11px] text-ink-muted mt-1 leading-snug">
+                  Styled single-sheet field specification with table blocks, labels, data types, and constraints for backend handoff.
+                </p>
+              </div>
+
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={handleDownloadExcel}
+                  disabled={isExportingExcel}
+                  className="w-full flex items-center justify-center space-x-1 py-1 px-2.5 bg-accent hover:bg-accent/90 text-surface text-xs font-medium rounded-[2px] transition-colors disabled:opacity-50"
+                  title="Download styled Excel field specification"
+                >
+                  {isExportingExcel ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>Generating .xlsx...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-3 h-3" />
+                      <span>Download .xlsx</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
