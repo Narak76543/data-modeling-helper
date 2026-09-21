@@ -2,6 +2,7 @@
 from app.schemas.common import ErrorDetail, ErrorResponse, HealthResponse
 from app.schemas.field import FieldBase, FieldCreate, FieldUpdate, FieldResponse
 from app.schemas.entity import EntityBase, EntityCreate, EntityUpdate, EntityResponse
+from app.schemas.api_key import ApiKeyCreate, ApiKeyResponse, ApiKeyReorder
 
 __all__ = [
     "ErrorDetail",
@@ -15,4 +16,7 @@ __all__ = [
     "EntityCreate",
     "EntityUpdate",
     "EntityResponse",
+    "ApiKeyCreate",
+    "ApiKeyResponse",
+    "ApiKeyReorder",
 ]

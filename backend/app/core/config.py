@@ -22,7 +22,10 @@ class Settings(BaseSettings):
 
     # Gemini AI Configuration
     GEMINI_API_KEY: Union[str, None] = None
-    GEMINI_MODEL: str = "gemini-2.5-flash"
+    GEMINI_MODEL: str = "gemini-3.6-flash"
+
+    # API Key Encryption Secret (at-rest)
+    API_KEY_ENCRYPTION_SECRET: str = "dev-insecure-encryption-secret-key-change-in-production"
 
 
     model_config = SettingsConfigDict(

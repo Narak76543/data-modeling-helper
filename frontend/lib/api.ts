@@ -1,4 +1,5 @@
 import type { SQLDataType } from "@/types/canvas";
+import type { ApiKeyItem, ApiKeyCreateInput } from "@/types/settings";
 
 export interface AIGeneratedField {
   name: string;
@@ -52,4 +53,59 @@ export async function generateEntityWithAI(prompt: string): Promise<AIGeneratedE
       defaultValue: f.default_value,
     })),
   };
+}
+
+export async function getApiKeys(): Promise<ApiKeyItem[]> {
+  const response = await fetch(`${API_BASE_URL}/keys`);
+  if (!response.ok) {
+    throw new Error("Failed to fetch API keys");
+  }
+  return response.json();
+}
+
+export async function createApiKey(input: ApiKeyCreateInput): Promise<ApiKeyItem> {
+  const response = await fetch(`${API_BASE_URL}/keys`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+
+  if (!response.ok) {
+    let errMsg = "Failed to save API key";
+    try {
+      const err = await response.json();
+      if (err?.detail) errMsg = typeof err.detail === "string" ? err.detail : JSON.stringify(err.detail);
+    } catch {}
+    throw new Error(errMsg);
+  }
+
+  return response.json();
+}
+
+export async function deleteApiKey(keyId: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/keys/${keyId}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok && response.status !== 404) {
+    throw new Error("Failed to delete API key");
+  }
+}
+
+export async function reorderApiKeys(keyIds: string[]): Promise<ApiKeyItem[]> {
+  const response = await fetch(`${API_BASE_URL}/keys/reorder`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ key_ids: keyIds }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to reorder API keys");
+  }
+
+  return response.json();
 }
