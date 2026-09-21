@@ -73,3 +73,14 @@ Source of truth for what should and should not be built. If a requested feature 
 - [ ] FR-22: UI clearly communicates this is a starting draft, not a 
       finished design — e.g. "Review and refine before use" messaging, 
       consistent with the tool's teaching-first positioning.
+- [ ] FR-23: Auto-arrange layout using Dagre (hierarchical graph 
+      layout), triggered on demand, respecting existing Vertical/
+      Horizontal toggle.
+- [ ] FR-24: Minimap for canvas navigation on larger models.
+- [ ] FR-25: Collapsible entity cards (header-only view) for dense 
+      canvases.
+- [ ] FR-26: Hover-to-highlight — dim unrelated entities/edges when 
+      hovering one entity.
+- [ ] FR-27: Dark mode, following the token set in ui-style-guide.md, 
+      defaulting to system preference with a manual override in 
+      Settings.

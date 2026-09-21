@@ -5,6 +5,7 @@ import {
   BaseEdge,
   getSmoothStepPath,
   type EdgeProps,
+  type Edge,
 } from "@xyflow/react";
 
 export function OrthogonalEdge({
@@ -17,7 +18,8 @@ export function OrthogonalEdge({
   targetPosition,
   style = {},
   markerEnd,
-}: EdgeProps) {
+  data,
+}: EdgeProps<Edge<{ isDimmed?: boolean; isHighlighted?: boolean }>>) {
   const [edgePath] = getSmoothStepPath({
     sourceX,
     sourceY,
@@ -25,8 +27,12 @@ export function OrthogonalEdge({
     targetX,
     targetY,
     targetPosition,
-    borderRadius: 0, // Strict right angles / orthogonal per ui-style-guide.md
+    borderRadius: 4, // Clean 90° orthogonal turns with subtle smoothing
+    offset: 24, // Consistent channel offset from table borders
   });
+
+  const isDimmed = Boolean(data?.isDimmed);
+  const isHighlighted = Boolean(data?.isHighlighted);
 
   return (
     <BaseEdge
@@ -34,9 +40,11 @@ export function OrthogonalEdge({
       path={edgePath}
       markerEnd={markerEnd}
       style={{
-        ...style,
         stroke: "var(--color-accent)",
-        strokeWidth: 1.5,
+        strokeWidth: isHighlighted ? 2.5 : 1.5,
+        opacity: isDimmed ? 0.15 : 1,
+        transition: "opacity 150ms ease, stroke-width 150ms ease",
+        ...style,
       }}
     />
   );

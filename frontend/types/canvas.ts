@@ -70,6 +70,9 @@ export interface EntityNodeData extends Record<string, unknown> {
   allNodes?: EntityNode[];
   isPreview?: boolean;
   previewBatchId?: string;
+  isCollapsed?: boolean;
+  isDimmed?: boolean;
+  isHighlighted?: boolean;
   onNameChange?: (name: string) => void;
   onDelete?: () => void;
   onAddField?: () => void;
@@ -77,7 +80,13 @@ export interface EntityNodeData extends Record<string, unknown> {
   onDeleteField?: (fieldId: string) => void;
   onCommitPreview?: () => void;
   onDiscardPreview?: () => void;
+  onToggleCollapse?: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 export type EntityNode = Node<EntityNodeData, "entity" | "previewEntity">;
-export type RelationshipEdge = Edge;
+export type RelationshipEdge = Edge & {
+  isDimmed?: boolean;
+  isHighlighted?: boolean;
+};

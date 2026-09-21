@@ -78,3 +78,28 @@ Minimal layout concept:
 - Visible keyboard focus on every interactive element.
 - Never rely on color alone for state — pair `--color-error`/`--color-success` with text.
 - Respect `prefers-reduced-motion`.
+
+## Dark mode
+
+Respects `prefers-color-scheme` by default; user can override via a 
+toggle in Settings. Same blueprint identity — dark mode is not just 
+inverted colors, it keeps the same structural logic (ink lines on a 
+quiet surface, accent used only for meaning).
+
+| Token | Light | Dark |
+|---|---|---|
+| `--color-bg` | `#F7F8F7` | `#14181B` |
+| `--color-surface` | `#FFFFFF` | `#1D2226` |
+| `--color-ink` | `#14181B` | `#E8EAEA` |
+| `--color-ink-muted` | `#8A9195` | `#8A9195` |
+| `--color-accent` | `#1E3A5F` | `#5B8DBF` |
+| `--color-error` | `#C0392B` | `#E0665A` |
+| `--color-success` | `#3F7D58` | `#5FAE7C` |
+| `--color-grid` | `#DADDD9` | `#262B2F` |
+
+Rule: dark-mode accent/error/success are lightened versions of their 
+light-mode counterparts, not different hues — same meaning, adjusted 
+for contrast on a dark surface (WCAG AA minimum against `--color-bg`).
+Entity card borders in dark mode use `--color-ink-muted` at reduced 
+opacity rather than full `--color-ink`, since a full-contrast hairline 
+border reads as too harsh on a dark background.
