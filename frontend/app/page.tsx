@@ -1,14 +1,17 @@
 "use client";
 
-import React, { useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { Header } from "@/components/header/header";
 import { Sidebar } from "@/components/sidebar/sidebar";
 import { Canvas } from "@/components/canvas/canvas";
+import { ExportModal } from "@/components/export/export-modal";
 import { useCanvasState } from "@/hooks/use-canvas-state";
 import { validateModelClientSide } from "@/lib/validation";
 
 export default function WorkspacePage() {
+  const [isExportOpen, setIsExportOpen] = useState(false);
+
   const {
     nodes,
     edges,
@@ -44,7 +47,7 @@ export default function WorkspacePage() {
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-bg">
-      <Header />
+      <Header onOpenExport={() => setIsExportOpen(true)} />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar
           nodes={nodes}
@@ -71,6 +74,13 @@ export default function WorkspacePage() {
           </ReactFlowProvider>
         </main>
       </div>
+
+      <ExportModal
+        isOpen={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+        nodes={nodes}
+        validationResult={validationResult}
+      />
     </div>
   );
 }
