@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import { Trash2 } from "lucide-react";
+import { Trash2, Plus } from "lucide-react";
 import type { EntityNode } from "@/types/canvas";
+import { FieldRow } from "./field-row";
 
 export function EntityNodeComponent({
   id,
@@ -44,9 +45,11 @@ export function EntityNodeComponent({
     }
   };
 
+  const fields = data.fields || [];
+
   return (
     <div
-      className={`min-w-[190px] max-w-[260px] bg-surface text-ink border rounded-[2px] transition-colors select-none ${
+      className={`min-w-[240px] max-w-[320px] bg-surface text-ink border rounded-[2px] transition-colors select-none ${
         selected ? "border-accent ring-1 ring-accent" : "border-ink"
       }`}
     >
@@ -72,7 +75,7 @@ export function EntityNodeComponent({
         className="!w-2 !h-2 !bg-accent !border !border-accent !rounded-none -mb-[5px]"
       />
 
-      {/* Header: Entity Name */}
+      {/* Header: Entity Name (IBM Plex Sans) */}
       <div className="flex items-center justify-between px-3 py-2 bg-surface">
         {isEditingName ? (
           <input
@@ -82,12 +85,12 @@ export function EntityNodeComponent({
             onChange={(e) => setName(e.target.value)}
             onBlur={handleNameSubmit}
             onKeyDown={handleKeyDown}
-            className="w-full text-xs font-mono font-semibold bg-bg border border-accent px-1 py-0.5 outline-none text-ink rounded-none"
+            className="w-full text-xs font-sans font-semibold bg-bg border border-accent px-1.5 py-0.5 outline-none text-ink rounded-none"
           />
         ) : (
           <span
             onDoubleClick={() => setIsEditingName(true)}
-            className="text-xs font-mono font-semibold text-ink truncate cursor-text hover:text-accent"
+            className="text-xs font-sans font-semibold text-ink truncate cursor-text hover:text-accent tracking-wide"
             title="Double-click to rename"
           >
             {data.name}
@@ -110,11 +113,39 @@ export function EntityNodeComponent({
       {/* Hairline Divider */}
       <div className="border-b border-ink/20" />
 
-      {/* Field List Container (FR-2 placeholder) */}
-      <div className="p-2.5 min-h-[36px] flex items-center justify-center">
-        <span className="text-[11px] font-mono text-ink-muted italic">
-          No fields defined
-        </span>
+      {/* Field List Container (IBM Plex Mono) */}
+      <div className="divide-y divide-ink/10">
+        {fields.length === 0 ? (
+          <div className="p-2.5 text-center">
+            <span className="text-[11px] font-mono text-ink-muted italic">
+              No fields defined
+            </span>
+          </div>
+        ) : (
+          fields.map((field) => (
+            <FieldRow
+              key={field.id}
+              field={field}
+              onUpdate={(updates) => data.onUpdateField?.(field.id, updates)}
+              onDelete={() => data.onDeleteField?.(field.id)}
+            />
+          ))
+        )}
+      </div>
+
+      {/* Card Footer: Add Field Action */}
+      <div className="border-t border-ink/10 bg-bg/50 p-1.5 flex items-center justify-between">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            data.onAddField?.();
+          }}
+          className="w-full flex items-center justify-center space-x-1 py-1 px-2 text-[11px] font-mono text-ink-muted hover:text-accent hover:bg-surface border border-dashed border-ink/20 hover:border-accent rounded-[2px] transition-all"
+        >
+          <Plus className="w-3 h-3" />
+          <span>Add Field</span>
+        </button>
       </div>
     </div>
   );

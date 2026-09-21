@@ -16,7 +16,7 @@ import "@xyflow/react/dist/style.css";
 
 import { EntityNodeComponent } from "./entity-node";
 import { OrthogonalEdge } from "./orthogonal-edge";
-import type { EntityNode, RelationshipEdge } from "@/types/canvas";
+import type { EntityNode, RelationshipEdge, EntityField } from "@/types/canvas";
 
 interface CanvasProps {
   nodes: EntityNode[];
@@ -26,6 +26,9 @@ interface CanvasProps {
   onConnect: OnConnect;
   onRenameEntity: (nodeId: string, name: string) => void;
   onDeleteEntity: (nodeId: string) => void;
+  onAddField: (entityId: string, field?: Partial<EntityField>) => void;
+  onUpdateField: (entityId: string, fieldId: string, updates: Partial<EntityField>) => void;
+  onDeleteField: (entityId: string, fieldId: string) => void;
 }
 
 export function Canvas({
@@ -36,6 +39,9 @@ export function Canvas({
   onConnect,
   onRenameEntity,
   onDeleteEntity,
+  onAddField,
+  onUpdateField,
+  onDeleteField,
 }: CanvasProps) {
   const nodeTypes: NodeTypes = useMemo(
     () => ({
@@ -60,9 +66,13 @@ export function Canvas({
           ...node.data,
           onNameChange: (newName: string) => onRenameEntity(node.id, newName),
           onDelete: () => onDeleteEntity(node.id),
+          onAddField: () => onAddField(node.id),
+          onUpdateField: (fieldId: string, updates: Partial<EntityField>) =>
+            onUpdateField(node.id, fieldId, updates),
+          onDeleteField: (fieldId: string) => onDeleteField(node.id, fieldId),
         },
       })),
-    [nodes, onRenameEntity, onDeleteEntity]
+    [nodes, onRenameEntity, onDeleteEntity, onAddField, onUpdateField, onDeleteField]
   );
 
   return (

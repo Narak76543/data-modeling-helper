@@ -17,6 +17,9 @@ export default function WorkspacePage() {
     addEntity,
     deleteEntity,
     renameEntity,
+    addField,
+    updateField,
+    deleteField,
   } = useCanvasState();
 
   const handleSelectEntity = useCallback(
@@ -52,6 +55,9 @@ export default function WorkspacePage() {
               onConnect={onConnect}
               onRenameEntity={renameEntity}
               onDeleteEntity={deleteEntity}
+              onAddField={addField}
+              onUpdateField={updateField}
+              onDeleteField={deleteField}
             />
           </ReactFlowProvider>
         </main>
