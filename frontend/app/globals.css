@@ -14,14 +14,14 @@
 }
 
 .dark {
-  --color-bg: #14181B;
-  --color-surface: #1D2226;
-  --color-ink: #E8EAEA;
-  --color-ink-muted: #8A9195;
-  --color-accent: #5B8DBF;
-  --color-error: #E0665A;
-  --color-success: #5FAE7C;
-  --color-grid: #262B2F;
+  --color-bg: #1A1D1F;
+  --color-surface: #232629;
+  --color-ink: #D4D7D6;
+  --color-ink-muted: #8F969A;
+  --color-accent: #6FA0C9;
+  --color-error: #D97A70;
+  --color-success: #6FB187;
+  --color-grid: #26292C;
 }
 
 body {

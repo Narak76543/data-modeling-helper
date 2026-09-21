@@ -52,8 +52,8 @@ export function ExportModal({
   const hasErrors = validationResult && !validationResult.isValid;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 select-none">
-      <div className="w-full max-w-2xl bg-surface border border-ink text-ink rounded-[2px] flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 select-none backdrop-blur-sm">
+      <div className="w-full max-w-2xl bg-surface border border-ink/30 dark:border-ink-muted/30 text-ink rounded-[2px] flex flex-col max-h-[90vh] shadow-xl">
         {/* Modal Header */}
         <div className="px-4 py-3 border-b border-ink/20 flex items-center justify-between">
           <div className="flex items-center space-x-2">
