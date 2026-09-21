@@ -30,8 +30,7 @@ def create_api_key(payload: ApiKeyCreate, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code = status.HTTP_400_BAD_REQUEST,
             detail      = "API key cannot be empty",
-        )
-
+        )               
     # Determine next order_index
     max_order = db.query(func.max(ApiKey.order_index)).scalar()
     next_order = (max_order + 1) if max_order is not None else 0

@@ -498,6 +498,23 @@ export function useCanvasState() {
     setEdges((prevEdges) => prevEdges.filter((e) => e.id !== `edge-${entityId}-${fieldId}`));
   }, []);
 
+  const toggleCollapseEntity = useCallback((nodeId: string) => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              isCollapsed: !node.data.isCollapsed,
+            },
+          };
+        }
+        return node;
+      })
+    );
+  }, []);
+
   const applyAutoLayout = useCallback((direction: LayoutDirection = "TB") => {
     setNodes((currentNodes) => {
       const layouted = getLayoutedElements(currentNodes, edges, direction);
@@ -514,6 +531,7 @@ export function useCanvasState() {
     onEdgesChange,
     onConnect,
     applyAutoLayout,
+    toggleCollapseEntity,
     addEntity,
     addAiPreviewEntity,
     addProjectPreview,

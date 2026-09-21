@@ -25,6 +25,7 @@ export default function WorkspacePage() {
     onEdgesChange,
     onConnect,
     applyAutoLayout,
+    toggleCollapseEntity,
     addEntity,
     addAiPreviewEntity,
     addProjectPreview,
@@ -94,6 +95,7 @@ export default function WorkspacePage() {
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
               onAutoLayout={applyAutoLayout}
+              onToggleCollapse={toggleCollapseEntity}
               onRenameEntity={renameEntity}
               onDeleteEntity={deleteEntity}
               onAddField={addField}

@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useState } from "react";
 import {
   ReactFlow,
   Background,
   Controls,
+  MiniMap,
   BackgroundVariant,
   useReactFlow,
   type NodeTypes,
@@ -30,6 +31,7 @@ interface CanvasProps {
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
   onAutoLayout?: (direction: LayoutDirection) => void;
+  onToggleCollapse?: (nodeId: string) => void;
   onRenameEntity: (nodeId: string, name: string) => void;
   onDeleteEntity: (nodeId: string) => void;
   onAddField: (entityId: string, field?: Partial<EntityField>) => void;
@@ -47,6 +49,7 @@ export function Canvas({
   onEdgesChange,
   onConnect,
   onAutoLayout,
+  onToggleCollapse,
   onRenameEntity,
   onDeleteEntity,
   onAddField,
@@ -56,6 +59,7 @@ export function Canvas({
   onDiscardPreview,
 }: CanvasProps) {
   const { fitView } = useReactFlow();
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
 
   const handleAutoLayout = useCallback(
     (direction: LayoutDirection) => {
@@ -94,28 +98,56 @@ export function Canvas({
     return map;
   }, [validationResult]);
 
-  // Inject callbacks, issues, and allNodes into node data
+  // Compute connected nodes and edges for hover-to-highlight
+  const connectedSubgraph = useMemo(() => {
+    if (!hoveredNodeId) return null;
+    const nodeIds = new Set<string>([hoveredNodeId]);
+    const edgeIds = new Set<string>();
+
+    edges.forEach((edge) => {
+      if (edge.source === hoveredNodeId || edge.target === hoveredNodeId) {
+        nodeIds.add(edge.source);
+        nodeIds.add(edge.target);
+        edgeIds.add(edge.id);
+      }
+    });
+
+    return { nodeIds, edgeIds };
+  }, [hoveredNodeId, edges]);
+
+  // Inject callbacks, issues, hover highlights, and allNodes into node data
   const enrichedNodes = useMemo(
     () =>
-      nodes.map((node) => ({
-        ...node,
-        data: {
-          ...node.data,
-          issues: issuesByEntity.get(node.id) || [],
-          allNodes: nodes,
-          onNameChange: (newName: string) => onRenameEntity(node.id, newName),
-          onDelete: () => onDeleteEntity(node.id),
-          onAddField: () => onAddField(node.id),
-          onUpdateField: (fieldId: string, updates: Partial<EntityField>) =>
-            onUpdateField(node.id, fieldId, updates),
-          onDeleteField: (fieldId: string) => onDeleteField(node.id, fieldId),
-          onCommitPreview: () => onCommitPreview?.(node.id),
-          onDiscardPreview: () => onDiscardPreview?.(node.id),
-        },
-      })),
+      nodes.map((node) => {
+        const isDimmed = connectedSubgraph ? !connectedSubgraph.nodeIds.has(node.id) : false;
+        const isHighlighted = connectedSubgraph ? connectedSubgraph.nodeIds.has(node.id) : false;
+
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            issues: issuesByEntity.get(node.id) || [],
+            allNodes: nodes,
+            isDimmed,
+            isHighlighted,
+            onNameChange: (newName: string) => onRenameEntity(node.id, newName),
+            onDelete: () => onDeleteEntity(node.id),
+            onAddField: () => onAddField(node.id),
+            onUpdateField: (fieldId: string, updates: Partial<EntityField>) =>
+              onUpdateField(node.id, fieldId, updates),
+            onDeleteField: (fieldId: string) => onDeleteField(node.id, fieldId),
+            onCommitPreview: () => onCommitPreview?.(node.id),
+            onDiscardPreview: () => onDiscardPreview?.(node.id),
+            onToggleCollapse: () => onToggleCollapse?.(node.id),
+            onMouseEnter: () => setHoveredNodeId(node.id),
+            onMouseLeave: () => setHoveredNodeId(null),
+          },
+        };
+      }),
     [
       nodes,
       issuesByEntity,
+      connectedSubgraph,
       onRenameEntity,
       onDeleteEntity,
       onAddField,
@@ -123,7 +155,27 @@ export function Canvas({
       onDeleteField,
       onCommitPreview,
       onDiscardPreview,
+      onToggleCollapse,
     ]
+  );
+
+  // Inject hover highlight status into edges
+  const enrichedEdges = useMemo(
+    () =>
+      edges.map((edge) => {
+        const isDimmed = connectedSubgraph ? !connectedSubgraph.edgeIds.has(edge.id) : false;
+        const isHighlighted = connectedSubgraph ? connectedSubgraph.edgeIds.has(edge.id) : false;
+
+        return {
+          ...edge,
+          data: {
+            ...((edge.data as Record<string, unknown>) || {}),
+            isDimmed,
+            isHighlighted,
+          },
+        };
+      }),
+    [edges, connectedSubgraph]
   );
 
   return (
@@ -131,7 +183,7 @@ export function Canvas({
       <LayoutControls onAutoLayout={handleAutoLayout} />
       <ReactFlow
         nodes={enrichedNodes}
-        edges={edges}
+        edges={enrichedEdges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
@@ -154,6 +206,13 @@ export function Canvas({
         <Controls
           showInteractive={false}
           className="!bg-surface !border !border-ink/20 !rounded-[2px] !shadow-none [&>button]:!border-b [&>button]:!border-ink/10 [&>button]:!text-ink [&>button:hover]:!bg-bg"
+        />
+        <MiniMap
+          nodeColor={(n) => (n.data.isPreview ? "var(--color-accent)" : "var(--color-ink-muted)")}
+          maskColor="rgba(20, 24, 27, 0.08)"
+          className="!bg-surface !border !border-ink/20 !rounded-[2px] !shadow-none !bottom-4 !right-4 !w-36 !h-24"
+          zoomable
+          pannable
         />
       </ReactFlow>
     </div>

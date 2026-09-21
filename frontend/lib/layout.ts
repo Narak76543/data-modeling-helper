@@ -13,6 +13,10 @@ const EXTRA_PADDING = 16;
  * Estimate node height dynamically based on fields count, issues, and preview state.
  */
 export function estimateNodeHeight(node: EntityNode): number {
+  if (node.data.isCollapsed) {
+    return HEADER_HEIGHT + 4;
+  }
+
   const fields = node.data.fields || [];
   const fieldsCount = fields.length;
   const issuesCount = node.data.issues?.length || 0;
