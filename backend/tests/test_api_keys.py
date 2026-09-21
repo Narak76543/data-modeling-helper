@@ -125,12 +125,12 @@ def test_key_rotation_on_rate_limit():
 
         call_count = 0
 
-        def mock_send_request(url, request_body):
+        def mock_send_request(url, request_body, api_key=None):
             nonlocal call_count
             call_count += 1
-            if "key_1_plaintext" in url:
+            if api_key == "key_1_plaintext" or "key_1_plaintext" in url:
                 raise GeminiRequestError(status_code=429, message="Resource exhausted: rate limit exceeded")
-            elif "key_2_plaintext" in url:
+            elif api_key == "key_2_plaintext" or "key_2_plaintext" in url:
                 return success_response
             raise RuntimeError("Unexpected URL")
 

@@ -48,21 +48,27 @@ class GeminiRequestError(Exception):
         self.message = message
 
 
-def _send_gemini_request(url: str, request_body: dict) -> dict:
-    """Send HTTP request to Gemini API using Python standard library."""
+import socket
+
+def _send_gemini_request(url: str, request_body: dict, api_key: Optional[str] = None) -> dict:
+    """Send HTTP request to Gemini API using Python standard library with 60s timeout."""
     data_bytes = json.dumps(request_body).encode("utf-8")
+    headers = {
+        "Content-Type": "application/json",
+        "Api-Revision": "2026-05-20",
+    }
+    if api_key:
+        headers["x-goog-api-key"] = api_key
+
     req = urllib.request.Request(
         url,
         data=data_bytes,
-        headers={
-            "Content-Type": "application/json",
-            "Api-Revision": "2026-05-20",
-        },
+        headers=headers,
         method="POST",
     )
 
     try:
-        with urllib.request.urlopen(req, timeout=15.0) as response:
+        with urllib.request.urlopen(req, timeout=60.0) as response:
             res_data = response.read().decode("utf-8")
             return json.loads(res_data)
     except urllib.error.HTTPError as e:
@@ -71,9 +77,11 @@ def _send_gemini_request(url: str, request_body: dict) -> dict:
         raise GeminiRequestError(status_code=e.code, message=f"Gemini API error ({e.code}): {error_body}")
     except urllib.error.URLError as e:
         logger.warning(f"Gemini API URLError: {e.reason}")
+        if isinstance(e.reason, socket.timeout):
+            raise TimeoutError("Gemini API request timed out after 60 seconds")
         raise ConnectionError(f"Failed to connect to Gemini API: {e.reason}")
-    except TimeoutError:
-        raise TimeoutError("Gemini API request timed out after 15 seconds")
+    except (TimeoutError, socket.timeout):
+        raise TimeoutError("Gemini API request timed out after 60 seconds")
 
 
 def _extract_text_from_interaction_response(data: dict) -> str:
@@ -190,7 +198,7 @@ class EntityAIGenerator:
             logger.info(f"Attempting entity generation using key '{label}' via Interactions API (index {index + 1}/{len(candidates)})")
 
             try:
-                data = await asyncio.to_thread(_send_gemini_request, url, request_body)
+                data = await asyncio.to_thread(_send_gemini_request, url, request_body, api_key)
 
                 raw_text = _extract_text_from_interaction_response(data)
 
