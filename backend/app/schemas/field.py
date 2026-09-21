@@ -8,6 +8,8 @@ class FieldBase(BaseModel):
     data_type: str = PydanticField(default="VARCHAR", max_length=50, description="SQL data type")
     is_primary_key: bool = False
     is_foreign_key: bool = False
+    references_entity_id: Optional[str] = None
+    references_field_id: Optional[str] = None
     is_nullable: bool = True
     is_unique: bool = False
     default_value: Optional[str] = None
@@ -23,10 +25,13 @@ class FieldUpdate(BaseModel):
     data_type: Optional[str] = None
     is_primary_key: Optional[bool] = None
     is_foreign_key: Optional[bool] = None
+    references_entity_id: Optional[str] = None
+    references_field_id: Optional[str] = None
     is_nullable: Optional[bool] = None
     is_unique: Optional[bool] = None
     default_value: Optional[str] = None
     order_index: Optional[int] = None
+
 
 
 class FieldResponse(FieldBase):

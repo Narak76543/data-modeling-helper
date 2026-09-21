@@ -31,15 +31,43 @@ export interface EntityField {
   dataType: SQLDataType;
   isPrimaryKey?: boolean;
   isForeignKey?: boolean;
+  referencesEntityId?: string;
+  referencesFieldId?: string;
   isNullable?: boolean;
   isUnique?: boolean;
   defaultValue?: string;
+}
+
+export type Severity = "error" | "warning";
+
+export interface ValidationIssue {
+  ruleId: string;
+  severity: Severity;
+  entityId: string;
+  fieldId?: string;
+  entityName?: string;
+  fieldName?: string;
+  message: string;
+}
+
+export interface ValidationSummary {
+  totalIssues: number;
+  errors: number;
+  warnings: number;
+}
+
+export interface ValidationResult {
+  isValid: boolean;
+  summary: ValidationSummary;
+  issues: ValidationIssue[];
 }
 
 export interface EntityNodeData extends Record<string, unknown> {
   id: string;
   name: string;
   fields: EntityField[];
+  issues?: ValidationIssue[];
+  allNodes?: EntityNode[];
   onNameChange?: (name: string) => void;
   onDelete?: () => void;
   onAddField?: () => void;

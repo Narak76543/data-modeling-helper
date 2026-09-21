@@ -16,11 +16,12 @@ import "@xyflow/react/dist/style.css";
 
 import { EntityNodeComponent } from "./entity-node";
 import { OrthogonalEdge } from "./orthogonal-edge";
-import type { EntityNode, RelationshipEdge, EntityField } from "@/types/canvas";
+import type { EntityNode, RelationshipEdge, EntityField, ValidationResult } from "@/types/canvas";
 
 interface CanvasProps {
   nodes: EntityNode[];
   edges: RelationshipEdge[];
+  validationResult?: ValidationResult;
   onNodesChange: OnNodesChange<EntityNode>;
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
@@ -34,6 +35,7 @@ interface CanvasProps {
 export function Canvas({
   nodes,
   edges,
+  validationResult,
   onNodesChange,
   onEdgesChange,
   onConnect,
@@ -57,13 +59,27 @@ export function Canvas({
     []
   );
 
-  // Inject callbacks into node data
+  // Map issues by entity ID
+  const issuesByEntity = useMemo(() => {
+    const map = new Map();
+    if (!validationResult) return map;
+    for (const issue of validationResult.issues) {
+      const list = map.get(issue.entityId) || [];
+      list.push(issue);
+      map.set(issue.entityId, list);
+    }
+    return map;
+  }, [validationResult]);
+
+  // Inject callbacks, issues, and allNodes into node data
   const enrichedNodes = useMemo(
     () =>
       nodes.map((node) => ({
         ...node,
         data: {
           ...node.data,
+          issues: issuesByEntity.get(node.id) || [],
+          allNodes: nodes,
           onNameChange: (newName: string) => onRenameEntity(node.id, newName),
           onDelete: () => onDeleteEntity(node.id),
           onAddField: () => onAddField(node.id),
@@ -72,7 +88,7 @@ export function Canvas({
           onDeleteField: (fieldId: string) => onDeleteField(node.id, fieldId),
         },
       })),
-    [nodes, onRenameEntity, onDeleteEntity, onAddField, onUpdateField, onDeleteField]
+    [nodes, issuesByEntity, onRenameEntity, onDeleteEntity, onAddField, onUpdateField, onDeleteField]
   );
 
   return (

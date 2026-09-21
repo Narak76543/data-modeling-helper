@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { Header } from "@/components/header/header";
 import { Sidebar } from "@/components/sidebar/sidebar";
 import { Canvas } from "@/components/canvas/canvas";
 import { useCanvasState } from "@/hooks/use-canvas-state";
+import { validateModelClientSide } from "@/lib/validation";
 
 export default function WorkspacePage() {
   const {
@@ -21,6 +22,12 @@ export default function WorkspacePage() {
     updateField,
     deleteField,
   } = useCanvasState();
+
+  // Run client-side validation mirror on every canvas update
+  const validationResult = useMemo(
+    () => validateModelClientSide(nodes),
+    [nodes]
+  );
 
   const handleSelectEntity = useCallback(
     (nodeId: string) => {
@@ -41,6 +48,7 @@ export default function WorkspacePage() {
       <div className="flex-1 flex overflow-hidden">
         <Sidebar
           nodes={nodes}
+          validationResult={validationResult}
           onAddEntity={() => addEntity()}
           onDeleteEntity={deleteEntity}
           onSelectEntity={handleSelectEntity}
@@ -50,6 +58,7 @@ export default function WorkspacePage() {
             <Canvas
               nodes={nodes}
               edges={edges}
+              validationResult={validationResult}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}

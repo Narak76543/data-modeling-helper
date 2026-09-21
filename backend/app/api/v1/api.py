@@ -1,6 +1,7 @@
 from fastapi import APIRouter
+from app.api.v1.routers import validation
 
 api_router = APIRouter()
 
-# Future route modules (e.g. entities, relationships, validation, export) will be included here:
-# api_router.include_router(entities.router, prefix="/entities", tags=["entities"])
+# Mount validation router
+api_router.include_router(validation.router, prefix="/validation", tags=["validation"])

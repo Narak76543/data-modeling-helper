@@ -60,10 +60,13 @@ class Field(Base):
     data_type: Mapped[str] = mapped_column(String(50), nullable=False, default="VARCHAR")
     is_primary_key: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_foreign_key: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    references_entity_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    references_field_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
     is_nullable: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_unique: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     default_value: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     order_index: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
