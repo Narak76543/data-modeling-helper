@@ -57,3 +57,19 @@ Source of truth for what should and should not be built. If a requested feature 
       system tries keys in priority order and falls back to the next 
       key on rate-limit/quota/invalid-key errors, surfacing an error to 
       the user only if all keys fail.
+- [ ] FR-18: "Generate Project" — user describes a small project 
+      (e.g. "school management system") in a text prompt. System 
+      generates a full starting schema (multiple entities + 
+      relationships) via a two-step Gemini generation process.
+- [ ] FR-19: Generated schema is capped at ~8-10 entities and rendered 
+      as a preview batch on the canvas (auto-arranged, visually 
+      distinct per FR-12's treatment) — nothing committed until the 
+      user accepts.
+- [ ] FR-20: User can accept the full batch, accept individual entities, 
+      edit any entity before accepting, or discard the whole batch.
+- [ ] FR-21: The full validation engine (FR-4) runs across the entire 
+      generated batch before preview is shown — cross-entity orphan-FK 
+      checks included, not just per-entity checks.
+- [ ] FR-22: UI clearly communicates this is a starting draft, not a 
+      finished design — e.g. "Review and refine before use" messaging, 
+      consistent with the tool's teaching-first positioning.

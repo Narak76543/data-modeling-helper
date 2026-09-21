@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import {
   ReactFlow,
   Background,
   Controls,
   BackgroundVariant,
+  useReactFlow,
   type NodeTypes,
   type EdgeTypes,
   type OnNodesChange,
@@ -17,7 +18,9 @@ import "@xyflow/react/dist/style.css";
 import { EntityNodeComponent } from "./entity-node";
 import { PreviewEntityNodeComponent } from "./preview-entity-node";
 import { OrthogonalEdge } from "./orthogonal-edge";
+import { LayoutControls } from "./layout-controls";
 import type { EntityNode, RelationshipEdge, EntityField, ValidationResult } from "@/types/canvas";
+import type { LayoutDirection } from "@/lib/layout";
 
 interface CanvasProps {
   nodes: EntityNode[];
@@ -26,6 +29,7 @@ interface CanvasProps {
   onNodesChange: OnNodesChange<EntityNode>;
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
+  onAutoLayout?: (direction: LayoutDirection) => void;
   onRenameEntity: (nodeId: string, name: string) => void;
   onDeleteEntity: (nodeId: string) => void;
   onAddField: (entityId: string, field?: Partial<EntityField>) => void;
@@ -42,6 +46,7 @@ export function Canvas({
   onNodesChange,
   onEdgesChange,
   onConnect,
+  onAutoLayout,
   onRenameEntity,
   onDeleteEntity,
   onAddField,
@@ -50,6 +55,18 @@ export function Canvas({
   onCommitPreview,
   onDiscardPreview,
 }: CanvasProps) {
+  const { fitView } = useReactFlow();
+
+  const handleAutoLayout = useCallback(
+    (direction: LayoutDirection) => {
+      onAutoLayout?.(direction);
+      setTimeout(() => {
+        fitView({ padding: 0.2, duration: 400 });
+      }, 50);
+    },
+    [onAutoLayout, fitView]
+  );
+
   const nodeTypes: NodeTypes = useMemo(
     () => ({
       entity: EntityNodeComponent,
@@ -111,6 +128,7 @@ export function Canvas({
 
   return (
     <div className="w-full h-full bg-bg relative">
+      <LayoutControls onAutoLayout={handleAutoLayout} />
       <ReactFlow
         nodes={enrichedNodes}
         edges={edges}

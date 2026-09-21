@@ -1,10 +1,14 @@
 import type { SQLDataType } from "@/types/canvas";
 import type { ApiKeyItem, ApiKeyCreateInput } from "@/types/settings";
+import type { AIGeneratedProject } from "@/types/project";
 
 export interface AIGeneratedField {
   name: string;
   dataType: SQLDataType;
   isPrimaryKey?: boolean;
+  isForeignKey?: boolean;
+  referencesEntity?: string;
+  referencesField?: string;
   isNullable?: boolean;
   isUnique?: boolean;
   defaultValue?: string;
@@ -52,6 +56,54 @@ export async function generateEntityWithAI(prompt: string): Promise<AIGeneratedE
       isUnique: f.is_unique,
       defaultValue: f.default_value,
     })),
+  };
+}
+
+export async function generateProjectWithAI(prompt: string): Promise<AIGeneratedProject> {
+  const response = await fetch(`${API_BASE_URL}/ai/generate-project`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ prompt }),
+  });
+
+  if (!response.ok) {
+    let errorMsg = "Failed to generate project with AI";
+    try {
+      const errData = await response.json();
+      if (errData?.detail?.message) {
+        errorMsg = errData.detail.message;
+      } else if (errData?.error?.message) {
+        errorMsg = errData.error.message;
+      }
+    } catch {
+      // Fallback
+    }
+    throw new Error(errorMsg);
+  }
+
+  const data = await response.json();
+  return {
+    project_name: data.project_name,
+    description: data.description,
+    entities: data.entities.map((e: any) => ({
+      name: e.name,
+      description: e.description,
+      fields: e.fields.map((f: any) => ({
+        name: f.name,
+        dataType: f.data_type,
+        isPrimaryKey: f.is_primary_key,
+        isForeignKey: f.is_foreign_key,
+        referencesEntity: f.references_entity,
+        referencesField: f.references_field,
+        isNullable: f.is_nullable,
+        isUnique: f.is_unique,
+        defaultValue: f.default_value,
+      })),
+    })),
+    relationships: data.relationships || [],
+    validation_summary: data.validation_summary,
   };
 }
 

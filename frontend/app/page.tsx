@@ -7,21 +7,29 @@ import { Sidebar } from "@/components/sidebar/sidebar";
 import { Canvas } from "@/components/canvas/canvas";
 import { ExportModal } from "@/components/export/export-modal";
 import { SettingsModal } from "@/components/settings/settings-modal";
+import { GenerateProjectModal } from "@/components/sidebar/generate-project-modal";
+import { PreviewBatchBanner } from "@/components/canvas/preview-batch-banner";
 import { useCanvasState } from "@/hooks/use-canvas-state";
 import { validateModelClientSide } from "@/lib/validation";
 
 export default function WorkspacePage() {
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
 
   const {
     nodes,
     edges,
+    previewBatch,
     onNodesChange,
     onEdgesChange,
     onConnect,
+    applyAutoLayout,
     addEntity,
     addAiPreviewEntity,
+    addProjectPreview,
+    commitProjectPreview,
+    discardProjectPreview,
     commitPreviewEntity,
     discardPreviewEntity,
     deleteEntity,
@@ -62,10 +70,21 @@ export default function WorkspacePage() {
           validationResult={validationResult}
           onAddEntity={() => addEntity()}
           onAddAiEntity={addAiPreviewEntity}
+          onOpenProjectModal={() => setIsProjectModalOpen(true)}
           onDeleteEntity={deleteEntity}
           onSelectEntity={handleSelectEntity}
         />
         <main className="flex-1 h-full relative">
+          {previewBatch && (
+            <PreviewBatchBanner
+              projectName={previewBatch.projectName}
+              tableCount={previewBatch.tableCount}
+              validationResult={validationResult}
+              onAcceptAll={commitProjectPreview}
+              onDiscardAll={discardProjectPreview}
+            />
+          )}
+
           <ReactFlowProvider>
             <Canvas
               nodes={nodes}
@@ -74,6 +93,7 @@ export default function WorkspacePage() {
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
+              onAutoLayout={applyAutoLayout}
               onRenameEntity={renameEntity}
               onDeleteEntity={deleteEntity}
               onAddField={addField}
@@ -96,6 +116,12 @@ export default function WorkspacePage() {
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
+      />
+
+      <GenerateProjectModal
+        isOpen={isProjectModalOpen}
+        onClose={() => setIsProjectModalOpen(false)}
+        onProjectGenerated={addProjectPreview}
       />
     </div>
   );

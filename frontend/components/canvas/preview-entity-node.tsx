@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { type NodeProps } from "@xyflow/react";
+import { Handle, Position, type NodeProps } from "@xyflow/react";
 import { Sparkles, Check, Trash2, Plus } from "lucide-react";
 import type { EntityNode } from "@/types/canvas";
 import { FieldRow } from "./field-row";
@@ -53,6 +53,56 @@ export function PreviewEntityNodeComponent({
         selected ? "ring-2 ring-accent/40" : ""
       }`}
     >
+      {/* Connection Handles: 4-directional with explicit IDs for smart routing */}
+      <Handle
+        id="target-top"
+        type="target"
+        position={Position.Top}
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mt-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+      />
+      <Handle
+        id="source-top"
+        type="source"
+        position={Position.Top}
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mt-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+      />
+      <Handle
+        id="target-bottom"
+        type="target"
+        position={Position.Bottom}
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mb-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+      />
+      <Handle
+        id="source-bottom"
+        type="source"
+        position={Position.Bottom}
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mb-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+      />
+      <Handle
+        id="target-left"
+        type="target"
+        position={Position.Left}
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -ml-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+      />
+      <Handle
+        id="source-left"
+        type="source"
+        position={Position.Left}
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -ml-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+      />
+      <Handle
+        id="target-right"
+        type="target"
+        position={Position.Right}
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mr-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+      />
+      <Handle
+        id="source-right"
+        type="source"
+        position={Position.Right}
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mr-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+      />
+
       {/* AI Preview Banner */}
       <div className="px-3 py-1 bg-accent/10 border-b border-accent/20 flex items-center justify-between text-[11px] font-mono text-accent">
         <div className="flex items-center space-x-1">
