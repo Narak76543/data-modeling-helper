@@ -15,6 +15,16 @@ def test_security_encryption_roundtrip():
     assert decrypted == secret
 
 
+def test_security_stdlib_fallback_encryption():
+    from app.core.security import _stdlib_encrypt, _stdlib_decrypt
+    secret = "AIzaSyD_fallback_test_key_9999"
+    encrypted = _stdlib_encrypt(secret.encode("utf-8"))
+    assert encrypted.startswith("std:")
+
+    decrypted = _stdlib_decrypt(encrypted)
+    assert decrypted == secret
+
+
 def test_security_masking():
     # Gemini standard key
     key1 = "AIzaSyD_my_secret_key_1234"
