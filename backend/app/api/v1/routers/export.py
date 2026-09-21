@@ -10,8 +10,8 @@ router = APIRouter()
 
 
 class ExportMarkdownRequest(BaseModel):
-    project_name: str = Field(default="Data Modeling Helper Project")
-    entities: List[EntityCreate]
+    project_name      : str = Field(default="Data Modeling Helper Project")
+    entities          : List[EntityCreate]
     include_validation: bool = True
 
 
@@ -30,15 +30,15 @@ def export_data_dictionary_markdown(payload: ExportMarkdownRequest) -> ExportMar
     )
 
     markdown_doc = DataDictionaryGenerator.generate_markdown(
-        entities=payload.entities,
-        project_name=payload.project_name,
-        validation_result=validation_result,
+        entities          = payload.entities,
+        project_name      = payload.project_name,
+        validation_result = validation_result,
     )
 
     safe_name = payload.project_name.lower().replace(" ", "_")
     filename = f"{safe_name}_data_dictionary.md"
 
     return ExportMarkdownResponse(
-        markdown=markdown_doc,
-        filename=filename,
+        markdown = markdown_doc,
+        filename = filename,
     )

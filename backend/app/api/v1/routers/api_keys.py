@@ -2,7 +2,6 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-
 from app.db.session import get_db
 from app.models.api_key import ApiKey
 from app.schemas.api_key import ApiKeyCreate, ApiKeyResponse, ApiKeyReorder
@@ -29,8 +28,8 @@ def create_api_key(payload: ApiKeyCreate, db: Session = Depends(get_db)):
     raw_key = payload.api_key.strip()
     if not raw_key:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="API key cannot be empty",
+            status_code = status.HTTP_400_BAD_REQUEST,
+            detail      = "API key cannot be empty",
         )
 
     # Determine next order_index
@@ -41,11 +40,11 @@ def create_api_key(payload: ApiKeyCreate, db: Session = Depends(get_db)):
     masked_key = mask_api_key(raw_key)
 
     new_key = ApiKey(
-        label=payload.label.strip(),
-        encrypted_key=encrypted_key,
-        masked_key=masked_key,
-        order_index=next_order,
-        is_active=True,
+        label         = payload.label.strip(),
+        encrypted_key = encrypted_key,
+        masked_key    = masked_key,
+        order_index   = next_order,
+        is_active     = True,
     )
 
     db.add(new_key)
@@ -63,8 +62,8 @@ def delete_api_key(key_id: str, db: Session = Depends(get_db)):
     key = db.query(ApiKey).filter(ApiKey.id == key_id).first()
     if not key:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"API key with ID '{key_id}' not found",
+            status_code = status.HTTP_404_NOT_FOUND,
+            detail      = f"API key with ID '{key_id}' not found",
         )
 
     db.delete(key)

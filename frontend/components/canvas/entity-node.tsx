@@ -66,26 +66,54 @@ export function EntityNodeComponent({
           : "border-ink"
       }`}
     >
-      {/* Connection Handles */}
+      {/* Connection Handles: 4-directional with explicit IDs for smart routing */}
       <Handle
-        type="target"
-        position={Position.Left}
-        className="!w-2 !h-2 !bg-surface !border !border-ink !rounded-none -ml-[5px]"
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="!w-2 !h-2 !bg-accent !border !border-accent !rounded-none -mr-[5px]"
-      />
-      <Handle
+        id="target-top"
         type="target"
         position={Position.Top}
-        className="!w-2 !h-2 !bg-surface !border !border-ink !rounded-none -mt-[5px]"
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mt-[5px] hover:!bg-accent hover:!border-accent transition-colors"
       />
       <Handle
+        id="source-top"
+        type="source"
+        position={Position.Top}
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mt-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+      />
+      <Handle
+        id="target-bottom"
+        type="target"
+        position={Position.Bottom}
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mb-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+      />
+      <Handle
+        id="source-bottom"
         type="source"
         position={Position.Bottom}
-        className="!w-2 !h-2 !bg-accent !border !border-accent !rounded-none -mb-[5px]"
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mb-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+      />
+      <Handle
+        id="target-left"
+        type="target"
+        position={Position.Left}
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -ml-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+      />
+      <Handle
+        id="source-left"
+        type="source"
+        position={Position.Left}
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -ml-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+      />
+      <Handle
+        id="target-right"
+        type="target"
+        position={Position.Right}
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mr-[5px] hover:!bg-accent hover:!border-accent transition-colors"
+      />
+      <Handle
+        id="source-right"
+        type="source"
+        position={Position.Right}
+        className="!w-2 !h-2 !bg-surface !border !border-ink/50 !rounded-none -mr-[5px] hover:!bg-accent hover:!border-accent transition-colors"
       />
 
       {/* Header: Entity Name & Preview Tag */}

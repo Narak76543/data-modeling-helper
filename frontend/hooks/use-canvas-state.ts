@@ -12,6 +12,7 @@ import {
 } from "@xyflow/react";
 import type { EntityNode, RelationshipEdge, EntityField } from "@/types/canvas";
 import type { AIGeneratedProject } from "@/types/project";
+import { getLayoutedElements, type LayoutDirection } from "@/lib/layout";
 
 const INITIAL_NODES: EntityNode[] = [
   {
@@ -74,8 +75,10 @@ const INITIAL_NODES: EntityNode[] = [
 const INITIAL_EDGES: RelationshipEdge[] = [
   {
     id: "edge-users-orders",
-    source: "entity-users",
-    target: "entity-orders",
+    source: "entity-orders",
+    target: "entity-users",
+    sourceHandle: "source-left",
+    targetHandle: "target-right",
     type: "orthogonal",
   },
 ];
@@ -273,8 +276,11 @@ export function useCanvasState() {
       })
       .filter(Boolean) as RelationshipEdge[];
 
-    setNodes((prev) => [...prev, ...newPreviewNodes]);
-    setEdges((prev) => [...prev, ...newPreviewEdges]);
+    // 4. Automatically organize newly generated preview nodes with hierarchical layout
+    const layouted = getLayoutedElements(newPreviewNodes, newPreviewEdges, "TB");
+
+    setNodes((prev) => [...prev, ...layouted.nodes]);
+    setEdges((prev) => [...prev, ...layouted.edges]);
     setPreviewBatch({
       id: batchId,
       projectName: project.project_name,
@@ -467,6 +473,14 @@ export function useCanvasState() {
     );
   }, []);
 
+  const applyAutoLayout = useCallback((direction: LayoutDirection = "TB") => {
+    setNodes((currentNodes) => {
+      const layouted = getLayoutedElements(currentNodes, edges, direction);
+      setEdges(layouted.edges);
+      return layouted.nodes;
+    });
+  }, [edges]);
+
   return {
     nodes,
     edges,
@@ -474,6 +488,7 @@ export function useCanvasState() {
     onNodesChange,
     onEdgesChange,
     onConnect,
+    applyAutoLayout,
     addEntity,
     addAiPreviewEntity,
     addProjectPreview,
