@@ -1,7 +1,9 @@
+import asyncio
 import json
 import logging
+import urllib.request
+import urllib.error
 from typing import Optional
-import httpx
 
 from app.core.config import settings
 from app.services.ai.models import AIGeneratedEntity
@@ -33,6 +35,31 @@ STRICT CONSTRAINTS (CRITICAL):
   ]
 }
 """
+
+
+def _send_gemini_request(url: str, request_body: dict) -> dict:
+    """Send HTTP request to Gemini API using Python standard library."""
+    data_bytes = json.dumps(request_body).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=data_bytes,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=15.0) as response:
+            res_data = response.read().decode("utf-8")
+            return json.loads(res_data)
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode("utf-8") if e.fp else ""
+        logger.error(f"Gemini API HTTPError {e.code}: {error_body}")
+        raise RuntimeError(f"Gemini API error ({e.code}): {error_body}")
+    except urllib.error.URLError as e:
+        logger.error(f"Gemini API URLError: {e.reason}")
+        raise ConnectionError(f"Failed to connect to Gemini API: {e.reason}")
+    except TimeoutError:
+        raise TimeoutError("Gemini API request timed out after 15 seconds")
 
 
 class EntityAIGenerator:
@@ -72,20 +99,9 @@ class EntityAIGenerator:
             },
         }
 
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            try:
-                response = await client.post(url, json=request_body)
-            except httpx.TimeoutException:
-                raise TimeoutError("Gemini API request timed out after 15 seconds")
-            except Exception as e:
-                logger.error(f"Network error calling Gemini API: {e}")
-                raise ConnectionError(f"Failed to connect to Gemini API: {str(e)}")
+        # Run the standard library HTTP call asynchronously in threadpool
+        data = await asyncio.to_thread(_send_gemini_request, url, request_body)
 
-        if response.status_code != 200:
-            logger.error(f"Gemini API returned error {response.status_code}: {response.text}")
-            raise RuntimeError(f"Gemini API error ({response.status_code}): {response.text}")
-
-        data = response.json()
         try:
             candidates = data.get("candidates", [])
             if not candidates:
