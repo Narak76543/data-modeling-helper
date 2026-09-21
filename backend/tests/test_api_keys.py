@@ -109,17 +109,18 @@ def test_key_rotation_on_rate_limit():
         ]
 
         success_response = {
-            "candidates": [
+            "id": "int_cust",
+            "steps": [
                 {
-                    "content": {
-                        "parts": [
-                            {
-                                "text": '{"name": "customers", "fields": [{"name": "id", "data_type": "INTEGER", "is_primary_key": true}]}'
-                            }
-                        ]
-                    }
+                    "type": "model_output",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": '{"name": "customers", "fields": [{"name": "id", "data_type": "INTEGER", "is_primary_key": true}]}',
+                        }
+                    ],
                 }
-            ]
+            ],
         }
 
         call_count = 0

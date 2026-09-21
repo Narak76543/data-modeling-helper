@@ -54,7 +54,10 @@ def _send_gemini_request(url: str, request_body: dict) -> dict:
     req = urllib.request.Request(
         url,
         data=data_bytes,
-        headers={"Content-Type": "application/json"},
+        headers={
+            "Content-Type": "application/json",
+            "Api-Revision": "2026-05-20",
+        },
         method="POST",
     )
 
@@ -73,8 +76,51 @@ def _send_gemini_request(url: str, request_body: dict) -> dict:
         raise TimeoutError("Gemini API request timed out after 15 seconds")
 
 
+def _extract_text_from_interaction_response(data: dict) -> str:
+    """
+    Extracts raw text payload from Gemini Interactions API response.
+    Supports both new 'steps' schema, 'outputs' schema, and fallback fields.
+    """
+    # 1. New schema: 'steps' array with 'model_output'
+    if "steps" in data and isinstance(data["steps"], list):
+        for step in reversed(data["steps"]):
+            if isinstance(step, dict):
+                # Step might contain content list
+                content = step.get("content", [])
+                if isinstance(content, list):
+                    for part in content:
+                        if isinstance(part, dict) and part.get("type") == "text" and part.get("text"):
+                            return part["text"]
+                        elif isinstance(part, dict) and "text" in part:
+                            return part["text"]
+                        elif isinstance(part, str):
+                            return part
+                elif isinstance(step.get("text"), str):
+                    return step["text"]
+
+    # 2. Legacy schema: 'outputs' array
+    if "outputs" in data and isinstance(data["outputs"], list):
+        for output in reversed(data["outputs"]):
+            if isinstance(output, dict) and output.get("text"):
+                return output["text"]
+            elif isinstance(output, str):
+                return output
+
+    # 3. Direct output_text convenience
+    if "output_text" in data and isinstance(data["output_text"], str):
+        return data["output_text"]
+
+    # 4. GenerateContent backward-compatibility fallback ('candidates')
+    if "candidates" in data and isinstance(data["candidates"], list) and data["candidates"]:
+        parts = data["candidates"][0].get("content", {}).get("parts", [])
+        if parts and isinstance(parts[0], dict) and parts[0].get("text"):
+            return parts[0]["text"]
+
+    raise ValueError("Gemini API response did not contain any valid text output in steps/outputs")
+
+
 class EntityAIGenerator:
-    """Service invoking Gemini API to generate single entity definitions with multi-key rotation."""
+    """Service invoking Gemini Interactions API to generate single entity definitions with multi-key rotation."""
 
     @classmethod
     def _get_candidate_keys(cls, db: Optional[Session] = None) -> List[Tuple[str, str]]:
@@ -110,7 +156,7 @@ class EntityAIGenerator:
     @classmethod
     async def generate_entity(cls, prompt: str, db: Optional[Session] = None) -> AIGeneratedEntity:
         """
-        Call Gemini API with automatic key rotation and return a validated AIGeneratedEntity.
+        Call Gemini Interactions API with automatic key rotation and return a validated AIGeneratedEntity.
         Retries across keys if a rate-limit (429), quota (403), or invalid key (400/401) error occurs.
         """
         clean_prompt = prompt.strip()
@@ -123,21 +169,16 @@ class EntityAIGenerator:
                 "No Gemini API keys configured. Please add an API key in Settings or set GEMINI_API_KEY in .env"
             )
 
+        # Gemini Interactions API schema (POST /v1beta/interactions)
         request_body = {
-            "contents": [
-                {
-                    "parts": [
-                        {"text": clean_prompt}
-                    ]
-                }
-            ],
-            "systemInstruction": {
-                "parts": [
-                    {"text": SYSTEM_PROMPT}
-                ]
+            "model": settings.GEMINI_MODEL,
+            "input": clean_prompt,
+            "system_instruction": SYSTEM_PROMPT,
+            "response_format": {
+                "type": "text",
+                "mime_type": "application/json",
             },
-            "generationConfig": {
-                "responseMimeType": "application/json",
+            "generation_config": {
                 "temperature": 0.2,
             },
         }
@@ -145,18 +186,25 @@ class EntityAIGenerator:
         last_error: Optional[Exception] = None
 
         for index, (label, api_key) in enumerate(candidates):
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{settings.GEMINI_MODEL}:generateContent?key={api_key}"
-            logger.info(f"Attempting entity generation using key '{label}' (index {index + 1}/{len(candidates)})")
+            url = f"https://generativelanguage.googleapis.com/v1beta/interactions?key={api_key}"
+            logger.info(f"Attempting entity generation using key '{label}' via Interactions API (index {index + 1}/{len(candidates)})")
 
             try:
                 data = await asyncio.to_thread(_send_gemini_request, url, request_body)
 
-                candidates_res = data.get("candidates", [])
-                if not candidates_res:
-                    raise ValueError("Gemini API returned no content candidates")
+                raw_text = _extract_text_from_interaction_response(data)
 
-                raw_text = candidates_res[0]["content"]["parts"][0]["text"]
-                parsed_json = json.loads(raw_text)
+                # Clean markdown fences if any
+                cleaned_text = raw_text.strip()
+                if cleaned_text.startswith("```"):
+                    lines = cleaned_text.splitlines()
+                    if lines and lines[0].startswith("```"):
+                        lines = lines[1:]
+                    if lines and lines[-1].startswith("```"):
+                        lines = lines[:-1]
+                    cleaned_text = "\n".join(lines).strip()
+
+                parsed_json = json.loads(cleaned_text)
 
                 # Strict Pydantic validation
                 entity = AIGeneratedEntity.model_validate(parsed_json)

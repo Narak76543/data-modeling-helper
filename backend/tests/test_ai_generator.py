@@ -1,5 +1,11 @@
+import asyncio
 import pytest
+from unittest.mock import patch
 from app.services.ai.models import AIGeneratedEntity, AIGeneratedField
+from app.services.ai.generator import (
+    EntityAIGenerator,
+    _extract_text_from_interaction_response,
+)
 
 
 def test_ai_generated_field_validation():
@@ -40,3 +46,65 @@ def test_ai_generated_entity_validation():
 def test_ai_generated_entity_empty_fields_rejected():
     with pytest.raises(Exception):
         AIGeneratedEntity.model_validate({"name": "empty_table", "fields": []})
+
+
+def test_extract_text_from_steps_schema():
+    data = {
+        "id": "int_123",
+        "steps": [
+            {
+                "type": "model_output",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": '{"name": "addresses", "fields": [{"name": "id", "data_type": "INTEGER", "is_primary_key": true}]}',
+                    }
+                ],
+            }
+        ],
+    }
+    text = _extract_text_from_interaction_response(data)
+    assert "addresses" in text
+
+
+def test_extract_text_from_outputs_schema():
+    data = {
+        "id": "int_456",
+        "outputs": [
+            {
+                "type": "text",
+                "text": '{"name": "users", "fields": [{"name": "id", "data_type": "INTEGER", "is_primary_key": true}]}',
+            }
+        ],
+    }
+    text = _extract_text_from_interaction_response(data)
+    assert "users" in text
+
+
+def test_generate_entity_with_interactions_api_steps():
+    async def _test():
+        steps_response = {
+            "id": "int_789",
+            "steps": [
+                {
+                    "type": "model_output",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": '{"name": "addresses", "fields": [{"name": "id", "data_type": "INTEGER", "is_primary_key": true}, {"name": "street", "data_type": "VARCHAR", "is_nullable": false}, {"name": "city", "data_type": "VARCHAR", "is_nullable": false}, {"name": "postal_code", "data_type": "VARCHAR", "is_nullable": true}]}',
+                        }
+                    ],
+                }
+            ],
+        }
+
+        mock_candidates = [("Test Key", "fake_key_123")]
+        with patch.object(EntityAIGenerator, "_get_candidate_keys", return_value=mock_candidates):
+            with patch("app.services.ai.generator._send_gemini_request", return_value=steps_response):
+                entity = await EntityAIGenerator.generate_entity("address table")
+                assert entity.name == "addresses"
+                assert len(entity.fields) == 4
+                assert entity.fields[0].name == "id"
+                assert entity.fields[0].is_primary_key is True
+
+    asyncio.run(_test())
