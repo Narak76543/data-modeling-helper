@@ -69,6 +69,7 @@ export interface EntityNodeData extends Record<string, unknown> {
   issues?: ValidationIssue[];
   allNodes?: EntityNode[];
   isPreview?: boolean;
+  previewBatchId?: string;
   onNameChange?: (name: string) => void;
   onDelete?: () => void;
   onAddField?: () => void;

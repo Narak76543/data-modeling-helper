@@ -14,6 +14,9 @@ class AIGeneratedField(BaseModel):
     name: str = Field(..., min_length=1, max_length=100, description="Column name in snake_case")
     data_type: str = Field(default="VARCHAR", description="SQL data type from standard list")
     is_primary_key: bool = False
+    is_foreign_key: bool = False
+    references_entity: Optional[str] = None
+    references_field: Optional[str] = None
     is_nullable: bool = True
     is_unique: bool = False
     default_value: Optional[str] = None

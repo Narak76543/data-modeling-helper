@@ -10,6 +10,7 @@ interface SidebarProps {
   validationResult?: ValidationResult;
   onAddEntity: () => void;
   onAddAiEntity: (entity: { name: string; fields: any[] }) => void;
+  onOpenProjectModal?: () => void;
   onDeleteEntity: (id: string) => void;
   onSelectEntity?: (id: string) => void;
 }
@@ -19,6 +20,7 @@ export function Sidebar({
   validationResult,
   onAddEntity,
   onAddAiEntity,
+  onOpenProjectModal,
   onDeleteEntity,
   onSelectEntity,
 }: SidebarProps) {
@@ -104,7 +106,18 @@ export function Sidebar({
             className="w-full flex items-center justify-center space-x-1.5 bg-surface hover:bg-bg text-accent border border-accent/40 text-xs font-medium py-1.5 px-3 rounded-[2px] transition-colors"
           >
             <Sparkles className="w-3.5 h-3.5 text-accent" />
-            <span>Add with AI</span>
+            <span>Add Table with AI</span>
+          </button>
+
+          {/* AI Project Generator: Generate Project with AI (FR-18) */}
+          <button
+            type="button"
+            onClick={onOpenProjectModal}
+            className="w-full flex items-center justify-center space-x-1.5 bg-accent/10 hover:bg-accent/20 text-accent border border-accent/30 text-xs font-medium py-1.5 px-3 rounded-[2px] transition-colors"
+            title="Generate a multi-table relational draft for a full project"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-accent" />
+            <span>Generate Project with AI</span>
           </button>
 
           {/* Inline AI Prompt Input */}

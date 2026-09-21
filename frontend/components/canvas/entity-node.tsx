@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import { Trash2, Plus, AlertCircle } from "lucide-react";
+import { Trash2, Plus, AlertCircle, Check, X, Sparkles } from "lucide-react";
 import type { EntityNode } from "@/types/canvas";
 import { FieldRow } from "./field-row";
 
@@ -14,6 +14,8 @@ export function EntityNodeComponent({
   const [isEditingName, setIsEditingName] = useState(false);
   const [name, setName] = useState(data.name || "entity");
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const isPreview = Boolean(data.isPreview);
 
   useEffect(() => {
     setName(data.name || "entity");
@@ -55,7 +57,9 @@ export function EntityNodeComponent({
   return (
     <div
       className={`min-w-[260px] max-w-[340px] bg-surface text-ink border rounded-[2px] transition-colors select-none ${
-        selected
+        isPreview
+          ? "border-dashed border-accent/80 bg-surface/90 shadow-sm"
+          : selected
           ? "border-accent ring-1 ring-accent"
           : hasErrors
           ? "border-error/80"
@@ -84,8 +88,8 @@ export function EntityNodeComponent({
         className="!w-2 !h-2 !bg-accent !border !border-accent !rounded-none -mb-[5px]"
       />
 
-      {/* Header: Entity Name (IBM Plex Sans) */}
-      <div className="flex items-center justify-between px-3 py-2 bg-surface">
+      {/* Header: Entity Name & Preview Tag */}
+      <div className={`flex items-center justify-between px-3 py-2 ${isPreview ? "bg-accent/5 border-b border-accent/20" : "bg-surface"}`}>
         <div className="flex items-center space-x-1.5 flex-1 min-w-0">
           {hasErrors && (
             <span title="Validation issue detected" className="shrink-0 flex items-center">
@@ -93,6 +97,12 @@ export function EntityNodeComponent({
             </span>
           )}
 
+          {isPreview && (
+            <span className="flex items-center space-x-1 px-1 py-0.2 bg-accent/15 border border-accent/30 text-accent text-[9px] font-mono uppercase font-bold rounded-[2px]">
+              <Sparkles className="w-2.5 h-2.5" />
+              <span>Draft</span>
+            </span>
+          )}
 
           {isEditingName ? (
             <input
@@ -115,17 +125,46 @@ export function EntityNodeComponent({
           )}
         </div>
 
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            data.onDelete?.();
-          }}
-          className="ml-2 text-ink-muted hover:text-error transition-colors p-0.5"
-          title="Delete entity"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
+        {/* Header Action: Delete or Preview Discard */}
+        {!isPreview ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              data.onDelete?.();
+            }}
+            className="ml-2 text-ink-muted hover:text-error transition-colors p-0.5"
+            title="Delete entity"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        ) : (
+          <div className="flex items-center space-x-1 ml-2">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                data.onCommitPreview?.();
+              }}
+              className="flex items-center space-x-0.5 px-1.5 py-0.5 bg-accent hover:bg-accent/90 text-surface text-[10px] font-medium rounded-[2px] transition-colors"
+              title="Accept this table into project"
+            >
+              <Check className="w-3 h-3" />
+              <span>Accept</span>
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                data.onDiscardPreview?.();
+              }}
+              className="text-ink-muted hover:text-error p-0.5 transition-colors"
+              title="Discard this preview table"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Entity-Level Validation Messages */}
@@ -141,7 +180,7 @@ export function EntityNodeComponent({
       )}
 
       {/* Hairline Divider */}
-      {entityLevelIssues.length === 0 && <div className="border-b border-ink/20" />}
+      {entityLevelIssues.length === 0 && !isPreview && <div className="border-b border-ink/20" />}
 
       {/* Field List Container (IBM Plex Mono) */}
       <div className="divide-y divide-ink/10">
