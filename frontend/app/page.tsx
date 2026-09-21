@@ -19,6 +19,9 @@ export default function WorkspacePage() {
     onEdgesChange,
     onConnect,
     addEntity,
+    addAiPreviewEntity,
+    commitPreviewEntity,
+    discardPreviewEntity,
     deleteEntity,
     renameEntity,
     addField,
@@ -53,6 +56,7 @@ export default function WorkspacePage() {
           nodes={nodes}
           validationResult={validationResult}
           onAddEntity={() => addEntity()}
+          onAddAiEntity={addAiPreviewEntity}
           onDeleteEntity={deleteEntity}
           onSelectEntity={handleSelectEntity}
         />
@@ -70,6 +74,8 @@ export default function WorkspacePage() {
               onAddField={addField}
               onUpdateField={updateField}
               onDeleteField={deleteField}
+              onCommitPreview={commitPreviewEntity}
+              onDiscardPreview={discardPreviewEntity}
             />
           </ReactFlowProvider>
         </main>

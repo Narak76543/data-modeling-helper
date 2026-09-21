@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { Plus, Trash2, ChevronLeft, ChevronRight, Check, AlertCircle, AlertTriangle } from "lucide-react";
+import { Plus, Sparkles, Trash2, ChevronLeft, ChevronRight, Check, AlertCircle, AlertTriangle, Loader2 } from "lucide-react";
 import type { EntityNode, ValidationResult } from "@/types/canvas";
+import { generateEntityWithAI } from "@/lib/api";
 
 interface SidebarProps {
   nodes: EntityNode[];
   validationResult?: ValidationResult;
   onAddEntity: () => void;
+  onAddAiEntity: (entity: { name: string; fields: any[] }) => void;
   onDeleteEntity: (id: string) => void;
   onSelectEntity?: (id: string) => void;
 }
@@ -16,15 +18,38 @@ export function Sidebar({
   nodes,
   validationResult,
   onAddEntity,
+  onAddAiEntity,
   onDeleteEntity,
   onSelectEntity,
 }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [showIssues, setShowIssues] = useState(true);
+  const [showAiInput, setShowAiInput] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const errors = validationResult?.summary.errors || 0;
   const warnings = validationResult?.summary.warnings || 0;
   const issues = validationResult?.issues || [];
+
+  const handleAiGenerate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aiPrompt.trim()) return;
+
+    try {
+      setIsGenerating(true);
+      setAiError(null);
+      const generated = await generateEntityWithAI(aiPrompt.trim());
+      onAddAiEntity(generated);
+      setAiPrompt("");
+      setShowAiInput(false);
+    } catch (err: any) {
+      setAiError(err.message || "Failed to generate entity with AI");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   if (collapsed) {
     return (
@@ -42,7 +67,7 @@ export function Sidebar({
 
   return (
     <aside className="w-[230px] border-r border-ink/20 bg-surface flex flex-col justify-between select-none h-[calc(100vh-44px)]">
-      {/* Top section: Entities list */}
+      {/* Top section: Entities list & Add Actions */}
       <div className="flex flex-col flex-1 overflow-y-auto">
         <div className="p-3 border-b border-ink/10 flex items-center justify-between">
           <span className="text-xs font-semibold text-ink uppercase tracking-wider">
@@ -57,8 +82,9 @@ export function Sidebar({
           </button>
         </div>
 
-        {/* Add Entity Button (Primary Action) */}
-        <div className="p-2.5">
+        {/* Action Buttons */}
+        <div className="p-2.5 space-y-1.5 border-b border-ink/10">
+          {/* Primary Action: Add Entity */}
           <button
             type="button"
             onClick={onAddEntity}
@@ -67,6 +93,65 @@ export function Sidebar({
             <Plus className="w-3.5 h-3.5" />
             <span>Add Entity</span>
           </button>
+
+          {/* AI Action: Add Entity with AI */}
+          <button
+            type="button"
+            onClick={() => {
+              setShowAiInput(!showAiInput);
+              setAiError(null);
+            }}
+            className="w-full flex items-center justify-center space-x-1.5 bg-surface hover:bg-bg text-accent border border-accent/40 text-xs font-medium py-1.5 px-3 rounded-[2px] transition-colors"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-accent" />
+            <span>Add with AI</span>
+          </button>
+
+          {/* Inline AI Prompt Input */}
+          {showAiInput && (
+            <form onSubmit={handleAiGenerate} className="mt-2 p-2 bg-bg border border-ink/20 rounded-[2px] space-y-1.5">
+              <div className="text-[10px] font-mono text-ink-muted">Describe table (single):</div>
+              <input
+                type="text"
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                placeholder="e.g. address table"
+                disabled={isGenerating}
+                className="w-full text-xs font-mono bg-surface border border-ink/30 px-2 py-1 outline-none text-ink rounded-none placeholder:text-ink-muted/50"
+                autoFocus
+              />
+
+              {aiError && (
+                <div className="text-[10px] font-mono text-error leading-tight">
+                  {aiError}
+                </div>
+              )}
+
+              <div className="flex items-center space-x-1 pt-0.5">
+                <button
+                  type="submit"
+                  disabled={isGenerating || !aiPrompt.trim()}
+                  className="flex-1 flex items-center justify-center space-x-1 bg-accent text-surface text-[11px] font-medium py-1 rounded-[2px] disabled:opacity-50 transition-all"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>Generating...</span>
+                    </>
+                  ) : (
+                    <span>Generate</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAiInput(false)}
+                  className="px-2 py-1 text-[11px] font-mono text-ink-muted hover:text-ink"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
         </div>
 
         {/* Entity List */}
@@ -79,17 +164,23 @@ export function Sidebar({
             nodes.map((node) => {
               const nodeIssues = issues.filter((i) => i.entityId === node.id);
               const nodeHasErrors = nodeIssues.some((i) => i.severity === "error");
+              const isPreview = node.type === "previewEntity";
 
               return (
                 <div
                   key={node.id}
                   onClick={() => onSelectEntity?.(node.id)}
-                  className="group flex items-center justify-between px-2 py-1.5 text-xs font-mono text-ink hover:bg-bg rounded-[2px] cursor-pointer transition-colors"
+                  className={`group flex items-center justify-between px-2 py-1.5 text-xs font-mono rounded-[2px] cursor-pointer transition-colors ${
+                    isPreview
+                      ? "border border-dashed border-accent/60 bg-accent/5 text-accent"
+                      : "text-ink hover:bg-bg"
+                  }`}
                 >
                   <div className="flex items-center space-x-1.5 truncate">
                     {nodeHasErrors && (
                       <span className="w-1.5 h-1.5 rounded-full bg-error shrink-0" />
                     )}
+                    {isPreview && <Sparkles className="w-3 h-3 shrink-0 text-accent" />}
                     <span className="truncate">{node.data.name}</span>
                   </div>
                   <button

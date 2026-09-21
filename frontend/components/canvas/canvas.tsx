@@ -15,6 +15,7 @@ import {
 import "@xyflow/react/dist/style.css";
 
 import { EntityNodeComponent } from "./entity-node";
+import { PreviewEntityNodeComponent } from "./preview-entity-node";
 import { OrthogonalEdge } from "./orthogonal-edge";
 import type { EntityNode, RelationshipEdge, EntityField, ValidationResult } from "@/types/canvas";
 
@@ -30,6 +31,8 @@ interface CanvasProps {
   onAddField: (entityId: string, field?: Partial<EntityField>) => void;
   onUpdateField: (entityId: string, fieldId: string, updates: Partial<EntityField>) => void;
   onDeleteField: (entityId: string, fieldId: string) => void;
+  onCommitPreview?: (nodeId: string) => void;
+  onDiscardPreview?: (nodeId: string) => void;
 }
 
 export function Canvas({
@@ -44,10 +47,13 @@ export function Canvas({
   onAddField,
   onUpdateField,
   onDeleteField,
+  onCommitPreview,
+  onDiscardPreview,
 }: CanvasProps) {
   const nodeTypes: NodeTypes = useMemo(
     () => ({
       entity: EntityNodeComponent,
+      previewEntity: PreviewEntityNodeComponent,
     }),
     []
   );
@@ -86,9 +92,21 @@ export function Canvas({
           onUpdateField: (fieldId: string, updates: Partial<EntityField>) =>
             onUpdateField(node.id, fieldId, updates),
           onDeleteField: (fieldId: string) => onDeleteField(node.id, fieldId),
+          onCommitPreview: () => onCommitPreview?.(node.id),
+          onDiscardPreview: () => onDiscardPreview?.(node.id),
         },
       })),
-    [nodes, issuesByEntity, onRenameEntity, onDeleteEntity, onAddField, onUpdateField, onDeleteField]
+    [
+      nodes,
+      issuesByEntity,
+      onRenameEntity,
+      onDeleteEntity,
+      onAddField,
+      onUpdateField,
+      onDeleteField,
+      onCommitPreview,
+      onDiscardPreview,
+    ]
   );
 
   return (

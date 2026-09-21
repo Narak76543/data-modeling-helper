@@ -68,12 +68,15 @@ export interface EntityNodeData extends Record<string, unknown> {
   fields: EntityField[];
   issues?: ValidationIssue[];
   allNodes?: EntityNode[];
+  isPreview?: boolean;
   onNameChange?: (name: string) => void;
   onDelete?: () => void;
   onAddField?: () => void;
   onUpdateField?: (fieldId: string, updates: Partial<EntityField>) => void;
   onDeleteField?: (fieldId: string) => void;
+  onCommitPreview?: () => void;
+  onDiscardPreview?: () => void;
 }
 
-export type EntityNode = Node<EntityNodeData, "entity">;
+export type EntityNode = Node<EntityNodeData, "entity" | "previewEntity">;
 export type RelationshipEdge = Edge;
