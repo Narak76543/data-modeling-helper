@@ -25,7 +25,8 @@ export function OrthogonalEdge({
     targetX,
     targetY,
     targetPosition,
-    borderRadius: 0, // Strict right angles / orthogonal per ui-style-guide.md
+    borderRadius: 4, // Clean 90° orthogonal turns with subtle smoothing
+    offset: 24, // Consistent channel offset from table borders
   });
 
   return (
@@ -34,9 +35,9 @@ export function OrthogonalEdge({
       path={edgePath}
       markerEnd={markerEnd}
       style={{
-        ...style,
-        stroke: "var(--color-accent)",
+        stroke: "#1E3A5F",
         strokeWidth: 1.5,
+        ...style,
       }}
     />
   );

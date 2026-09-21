@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { X, Key, AlertCircle, AlertTriangle } from "lucide-react";
+import { Handle, Position } from "@xyflow/react";
+import { X, Key, Link2, AlertCircle, AlertTriangle } from "lucide-react";
 import {
   type EntityField,
   SQL_DATA_TYPES,
@@ -71,21 +72,55 @@ export function FieldRow({
 
   return (
     <div
-      className={`border-b border-ink/10 last:border-b-0 transition-colors ${
+      className={`relative border-b border-ink/10 last:border-b-0 transition-colors ${
         issue
           ? issue.severity === "error"
             ? "bg-error/5"
             : "bg-ink/5"
+          : field.isPrimaryKey
+          ? "bg-accent/[0.03]"
           : ""
       }`}
     >
+      {/* Field-level connection handles for precise row-to-row orthogonal routing */}
+      <Handle
+        id={`field-target-left-${field.id}`}
+        type="target"
+        position={Position.Left}
+        className="!w-1.5 !h-1.5 !bg-transparent !border-none !rounded-none -ml-[3px] !pointer-events-none"
+      />
+      <Handle
+        id={`field-source-left-${field.id}`}
+        type="source"
+        position={Position.Left}
+        className="!w-1.5 !h-1.5 !bg-transparent !border-none !rounded-none -ml-[3px] !pointer-events-none"
+      />
+      <Handle
+        id={`field-target-right-${field.id}`}
+        type="target"
+        position={Position.Right}
+        className="!w-1.5 !h-1.5 !bg-transparent !border-none !rounded-none -mr-[3px] !pointer-events-none"
+      />
+      <Handle
+        id={`field-source-right-${field.id}`}
+        type="source"
+        position={Position.Right}
+        className="!w-1.5 !h-1.5 !bg-transparent !border-none !rounded-none -mr-[3px] !pointer-events-none"
+      />
+
       <div className="group flex items-center justify-between px-2.5 py-1.5 hover:bg-bg/60 text-xs font-mono">
-        {/* Left: PK icon & Field Name */}
+        {/* Left: PK/FK icon & Field Name */}
         <div className="flex items-center space-x-1.5 flex-1 min-w-0 mr-2">
-          {field.isPrimaryKey && (
-            <span title="Primary Key" className="shrink-0 flex items-center">
+          {field.isPrimaryKey ? (
+            <span title="Primary Key (PK)" className="shrink-0 flex items-center">
               <Key className="w-3 h-3 text-accent" />
             </span>
+          ) : field.isForeignKey ? (
+            <span title="Foreign Key (FK)" className="shrink-0 flex items-center">
+              <Link2 className="w-3 h-3 text-ink-muted" />
+            </span>
+          ) : (
+            <span className="w-3 shrink-0" />
           )}
 
           {issue && (
@@ -115,7 +150,11 @@ export function FieldRow({
             <span
               onDoubleClick={() => setIsEditingName(true)}
               className={`truncate cursor-text hover:text-accent select-text ${
-                field.isPrimaryKey ? "font-semibold text-ink" : "text-ink"
+                field.isPrimaryKey
+                  ? "font-semibold text-ink"
+                  : field.isForeignKey
+                  ? "text-ink/90 italic"
+                  : "text-ink"
               }`}
               title="Double-click to edit name"
             >
@@ -132,7 +171,7 @@ export function FieldRow({
             onChange={(e) =>
               onUpdate({ dataType: e.target.value as SQLDataType })
             }
-            className="text-[11px] font-mono bg-transparent text-ink-muted hover:text-ink cursor-pointer border-none outline-none py-0 px-0.5 rounded-none"
+            className="text-[11px] font-mono bg-transparent text-ink-muted hover:text-ink cursor-pointer border-none outline-none py-0 px-0.5 rounded-none font-medium"
           >
             {SQL_DATA_TYPES.map((type) => (
               <option key={type} value={type} className="bg-surface text-ink">
@@ -234,7 +273,7 @@ export function FieldRow({
                   referencesFieldId: targetE?.data.fields[0]?.id || undefined,
                 });
               }}
-              className="text-[10px] font-mono bg-surface border border-ink/20 px-1 py-0.2 text-ink rounded-none outline-none"
+              className="text-[10px] font-mono bg-surface border border-ink/20 px-1 py-0.2 text-ink rounded-none outline-none max-w-[110px] truncate"
             >
               <option value="">(select entity)</option>
               {targetEntityCandidates.map((cand) => (
@@ -250,7 +289,7 @@ export function FieldRow({
                 onChange={(e) =>
                   onUpdate({ referencesFieldId: e.target.value || undefined })
                 }
-                className="text-[10px] font-mono bg-surface border border-ink/20 px-1 py-0.2 text-ink rounded-none outline-none"
+                className="text-[10px] font-mono bg-surface border border-ink/20 px-1 py-0.2 text-ink rounded-none outline-none max-w-[100px] truncate"
               >
                 <option value="">(select field)</option>
                 {targetFieldCandidates.map((f) => (

@@ -77,8 +77,8 @@ const INITIAL_EDGES: RelationshipEdge[] = [
     id: "edge-users-orders",
     source: "entity-orders",
     target: "entity-users",
-    sourceHandle: "source-left",
-    targetHandle: "target-right",
+    sourceHandle: "field-source-left-field-orders-user-id",
+    targetHandle: "field-target-right-field-users-id",
     type: "orthogonal",
   },
 ];
@@ -452,6 +452,28 @@ export function useCanvasState() {
           return node;
         })
       );
+
+      // Automatically synchronize edge connections when FK changes
+      if ("referencesEntityId" in updates || updates.isForeignKey === false) {
+        setEdges((prevEdges) => {
+          const edgeId = `edge-${entityId}-${fieldId}`;
+          const filtered = prevEdges.filter((e) => e.id !== edgeId);
+
+          if (updates.isForeignKey && updates.referencesEntityId) {
+            const targetFieldId = updates.referencesFieldId || "id";
+            const newEdge: RelationshipEdge = {
+              id: edgeId,
+              source: entityId,
+              target: updates.referencesEntityId,
+              sourceHandle: `field-source-left-${fieldId}`,
+              targetHandle: `field-target-right-${targetFieldId}`,
+              type: "orthogonal",
+            };
+            return [...filtered, newEdge];
+          }
+          return filtered;
+        });
+      }
     },
     []
   );
@@ -471,6 +493,9 @@ export function useCanvasState() {
         return node;
       })
     );
+
+    // Remove any edge attached to this field
+    setEdges((prevEdges) => prevEdges.filter((e) => e.id !== `edge-${entityId}-${fieldId}`));
   }, []);
 
   const applyAutoLayout = useCallback((direction: LayoutDirection = "TB") => {

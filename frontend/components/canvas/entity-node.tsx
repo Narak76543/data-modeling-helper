@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import { Trash2, Plus, AlertCircle, Check, X, Sparkles } from "lucide-react";
+import { Trash2, Plus, AlertCircle, Check, X, Sparkles, Table2 } from "lucide-react";
 import type { EntityNode } from "@/types/canvas";
 import { FieldRow } from "./field-row";
 
@@ -56,17 +56,17 @@ export function EntityNodeComponent({
 
   return (
     <div
-      className={`min-w-[260px] max-w-[340px] bg-surface text-ink border rounded-[2px] transition-colors select-none ${
+      className={`min-w-[270px] max-w-[340px] bg-surface text-ink border rounded-[3px] shadow-sm transition-all select-none ${
         isPreview
-          ? "border-dashed border-accent/80 bg-surface/90 shadow-sm"
+          ? "border-dashed border-accent bg-surface/95"
           : selected
-          ? "border-accent ring-1 ring-accent"
+          ? "border-accent ring-2 ring-accent/30 shadow-md"
           : hasErrors
           ? "border-error/80"
-          : "border-ink"
+          : "border-ink/80 hover:border-ink"
       }`}
     >
-      {/* Connection Handles: 4-directional with explicit IDs for smart routing */}
+      {/* Card Fallback Handles */}
       <Handle
         id="target-top"
         type="target"
@@ -117,8 +117,14 @@ export function EntityNodeComponent({
       />
 
       {/* Header: Entity Name & Preview Tag */}
-      <div className={`flex items-center justify-between px-3 py-2 ${isPreview ? "bg-accent/5 border-b border-accent/20" : "bg-surface"}`}>
+      <div className={`flex items-center justify-between px-3 py-2 border-b ${
+        isPreview 
+          ? "bg-accent/10 border-accent/30" 
+          : "bg-bg/60 border-ink/20"
+      }`}>
         <div className="flex items-center space-x-1.5 flex-1 min-w-0">
+          <Table2 className={`w-3.5 h-3.5 shrink-0 ${isPreview ? "text-accent" : "text-ink-muted"}`} />
+
           {hasErrors && (
             <span title="Validation issue detected" className="shrink-0 flex items-center">
               <AlertCircle className="w-3.5 h-3.5 text-error" />
@@ -126,7 +132,7 @@ export function EntityNodeComponent({
           )}
 
           {isPreview && (
-            <span className="flex items-center space-x-1 px-1 py-0.2 bg-accent/15 border border-accent/30 text-accent text-[9px] font-mono uppercase font-bold rounded-[2px]">
+            <span className="flex items-center space-x-1 px-1 py-0.2 bg-accent/20 border border-accent/40 text-accent text-[9px] font-mono uppercase font-bold rounded-[2px]">
               <Sparkles className="w-2.5 h-2.5" />
               <span>Draft</span>
             </span>
@@ -140,12 +146,12 @@ export function EntityNodeComponent({
               onChange={(e) => setName(e.target.value)}
               onBlur={handleNameSubmit}
               onKeyDown={handleKeyDown}
-              className="w-full text-xs font-sans font-semibold bg-bg border border-accent px-1.5 py-0.5 outline-none text-ink rounded-none"
+              className="w-full text-xs font-sans font-semibold bg-surface border border-accent px-1.5 py-0.5 outline-none text-ink rounded-none"
             />
           ) : (
             <span
               onDoubleClick={() => setIsEditingName(true)}
-              className="text-xs font-sans font-semibold text-ink truncate cursor-text hover:text-accent tracking-wide"
+              className="text-xs font-sans font-bold text-ink truncate cursor-text hover:text-accent tracking-tight"
               title="Double-click to rename"
             >
               {data.name}

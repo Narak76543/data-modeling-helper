@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import { Sparkles, Check, Trash2, Plus } from "lucide-react";
+import { Sparkles, Check, Trash2, Plus, Table2 } from "lucide-react";
 import type { EntityNode } from "@/types/canvas";
 import { FieldRow } from "./field-row";
 
@@ -115,6 +115,7 @@ export function PreviewEntityNodeComponent({
       {/* Header: Entity Name */}
       <div className="flex items-center justify-between px-3 py-2 bg-surface">
         <div className="flex items-center space-x-1.5 flex-1 min-w-0">
+          <Table2 className="w-3.5 h-3.5 text-accent shrink-0" />
           {isEditingName ? (
             <input
               ref={inputRef}
@@ -128,7 +129,7 @@ export function PreviewEntityNodeComponent({
           ) : (
             <span
               onDoubleClick={() => setIsEditingName(true)}
-              className="text-xs font-sans font-semibold text-ink truncate cursor-text hover:text-accent tracking-wide"
+              className="text-xs font-sans font-bold text-ink truncate cursor-text hover:text-accent tracking-tight"
               title="Double-click to rename"
             >
               {data.name}
