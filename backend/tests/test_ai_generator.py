@@ -108,3 +108,42 @@ def test_generate_entity_with_interactions_api_steps():
                 assert entity.fields[0].is_primary_key is True
 
     asyncio.run(_test())
+
+
+def test_generate_entity_with_model_503_fallback():
+    """Verify that when primary model returns 503 (high demand), it seamlessly falls back to next model."""
+    from app.services.ai.generator import GeminiRequestError
+    async def _test():
+        steps_response = {
+            "id": "int_fallback_success",
+            "steps": [
+                {
+                    "type": "model_output",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": '{"name": "addresses", "fields": [{"name": "id", "data_type": "INTEGER", "is_primary_key": true}]}',
+                        }
+                    ],
+                }
+            ],
+        }
+
+        call_log = []
+
+        def mock_send(url, request_body, api_key=None):
+            model = request_body.get("model")
+            call_log.append(model)
+            if model == "gemini-3.5-flash":
+                raise GeminiRequestError(status_code=503, message="Model is currently experiencing high demand")
+            return steps_response
+
+        mock_candidates = [("Test Key", "fake_key_123")]
+        with patch.object(EntityAIGenerator, "_get_candidate_keys", return_value=mock_candidates):
+            with patch("app.services.ai.generator._send_gemini_request", side_effect=mock_send):
+                entity = await EntityAIGenerator.generate_entity("address table")
+                assert entity.name == "addresses"
+                assert len(call_log) >= 2
+                assert call_log[0] == "gemini-3.5-flash"
+
+    asyncio.run(_test())

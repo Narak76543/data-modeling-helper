@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import socket
 import urllib.request
 import urllib.error
 from typing import Optional, List, Tuple
@@ -39,6 +40,14 @@ STRICT CONSTRAINTS (CRITICAL):
 }
 """
 
+FALLBACK_MODELS = [
+    "gemini-3.5-flash",
+    "gemini-3.1-flash-lite",
+    "gemini-3.6-flash",
+    "gemini-3-flash-preview",
+    "gemini-2.5-flash-lite",
+]
+
 
 class GeminiRequestError(Exception):
     """Custom exception for Gemini API HTTP failures with status code."""
@@ -47,8 +56,6 @@ class GeminiRequestError(Exception):
         self.status_code = status_code
         self.message = message
 
-
-import socket
 
 def _send_gemini_request(url: str, request_body: dict, api_key: Optional[str] = None) -> dict:
     """Send HTTP request to Gemini API using Python standard library with 60s timeout."""
@@ -93,7 +100,6 @@ def _extract_text_from_interaction_response(data: dict) -> str:
     if "steps" in data and isinstance(data["steps"], list):
         for step in reversed(data["steps"]):
             if isinstance(step, dict):
-                # Step might contain content list
                 content = step.get("content", [])
                 if isinstance(content, list):
                     for part in content:
@@ -128,7 +134,7 @@ def _extract_text_from_interaction_response(data: dict) -> str:
 
 
 class EntityAIGenerator:
-    """Service invoking Gemini Interactions API to generate single entity definitions with multi-key rotation."""
+    """Service invoking Gemini Interactions API to generate single entity definitions with multi-key & multi-model fallback."""
 
     @classmethod
     def _get_candidate_keys(cls, db: Optional[Session] = None) -> List[Tuple[str, str]]:
@@ -162,87 +168,112 @@ class EntityAIGenerator:
         return candidates
 
     @classmethod
+    def _get_candidate_models(cls) -> List[str]:
+        """Returns ordered list of models to try, starting with primary configured model."""
+        primary = settings.GEMINI_MODEL.strip()
+        models = [primary]
+        for m in FALLBACK_MODELS:
+            if m != primary and m not in models:
+                models.append(m)
+        return models
+
+    @classmethod
     async def generate_entity(cls, prompt: str, db: Optional[Session] = None) -> AIGeneratedEntity:
         """
-        Call Gemini Interactions API with automatic key rotation and return a validated AIGeneratedEntity.
-        Retries across keys if a rate-limit (429), quota (403), or invalid key (400/401) error occurs.
+        Call Gemini Interactions API with automatic multi-key and multi-model fallback.
+        Seamlessly falls back to secondary models on 503 (high demand / busy) and rotates keys on 429/403.
         """
         clean_prompt = prompt.strip()
         if not clean_prompt:
             raise ValueError("Prompt cannot be empty")
 
-        candidates = cls._get_candidate_keys(db)
-        if not candidates:
+        candidate_keys = cls._get_candidate_keys(db)
+        if not candidate_keys:
             raise ValueError(
                 "No Gemini API keys configured. Please add an API key in Settings or set GEMINI_API_KEY in .env"
             )
 
-        # Gemini Interactions API schema (POST /v1beta/interactions)
-        request_body = {
-            "model": settings.GEMINI_MODEL,
-            "input": clean_prompt,
-            "system_instruction": SYSTEM_PROMPT,
-            "response_format": {
-                "type": "text",
-                "mime_type": "application/json",
-            },
-            "generation_config": {
-                "temperature": 0.2,
-            },
-        }
-
+        candidate_models = cls._get_candidate_models()
         last_error: Optional[Exception] = None
 
-        for index, (label, api_key) in enumerate(candidates):
+        for key_index, (label, api_key) in enumerate(candidate_keys):
             url = f"https://generativelanguage.googleapis.com/v1beta/interactions?key={api_key}"
-            logger.info(f"Attempting entity generation using key '{label}' via Interactions API (index {index + 1}/{len(candidates)})")
 
-            try:
-                data = await asyncio.to_thread(_send_gemini_request, url, request_body, api_key)
-
-                raw_text = _extract_text_from_interaction_response(data)
-
-                # Clean markdown fences if any
-                cleaned_text = raw_text.strip()
-                if cleaned_text.startswith("```"):
-                    lines = cleaned_text.splitlines()
-                    if lines and lines[0].startswith("```"):
-                        lines = lines[1:]
-                    if lines and lines[-1].startswith("```"):
-                        lines = lines[:-1]
-                    cleaned_text = "\n".join(lines).strip()
-
-                parsed_json = json.loads(cleaned_text)
-
-                # Strict Pydantic validation
-                entity = AIGeneratedEntity.model_validate(parsed_json)
-                return entity
-
-            except GeminiRequestError as ge:
-                # Key rotation eligible on 429 (rate limit), 403 (quota/forbidden), 400/401 (invalid key/auth)
-                logger.warning(
-                    f"Gemini API key '{label}' failed with status {ge.status_code}. Rotating to next key..."
+            for model_name in candidate_models:
+                logger.info(
+                    f"Attempting entity generation using key '{label}' ({key_index + 1}/{len(candidate_keys)}) with model '{model_name}'"
                 )
-                last_error = ge
-                continue
-            except (ConnectionError, TimeoutError) as ce:
-                logger.warning(
-                    f"Network error on key '{label}': {ce}. Rotating to next key..."
-                )
-                last_error = ce
-                continue
-            except ValueError as ve:
-                # If it's a parsing/validation error from a successful response, do not rotate blindly
-                if "Malformed AI response" in str(ve) or "validation error" in str(ve).lower():
-                    raise ve
-                last_error = ve
-                continue
-            except Exception as e:
-                logger.error(f"Unexpected error with key '{label}': {e}")
-                last_error = e
-                continue
 
-        # If all keys failed
-        error_msg = f"All {len(candidates)} Gemini API key(s) failed. Last error: {str(last_error)}"
+                request_body = {
+                    "model": model_name,
+                    "input": clean_prompt,
+                    "system_instruction": SYSTEM_PROMPT,
+                    "response_format": {
+                        "type": "text",
+                        "mime_type": "application/json",
+                    },
+                    "generation_config": {
+                        "temperature": 0.2,
+                    },
+                }
+
+                try:
+                    data = await asyncio.to_thread(_send_gemini_request, url, request_body, api_key)
+
+                    raw_text = _extract_text_from_interaction_response(data)
+
+                    # Clean markdown fences if any
+                    cleaned_text = raw_text.strip()
+                    if cleaned_text.startswith("```"):
+                        lines = cleaned_text.splitlines()
+                        if lines and lines[0].startswith("```"):
+                            lines = lines[1:]
+                        if lines and lines[-1].startswith("```"):
+                            lines = lines[:-1]
+                        cleaned_text = "\n".join(lines).strip()
+
+                    parsed_json = json.loads(cleaned_text)
+
+                    # Strict Pydantic validation
+                    entity = AIGeneratedEntity.model_validate(parsed_json)
+                    return entity
+
+                except GeminiRequestError as ge:
+                    # If model is specifically busy / experiencing high demand (503), try next fallback model on same key
+                    if ge.status_code == 503:
+                        logger.warning(
+                            f"Model '{model_name}' returned status 503 ({ge.message}). Trying fallback model..."
+                        )
+                        last_error = ge
+                        continue
+
+                    # If key is rate-limited (429) or invalid (400/401/403), rotate immediately to next key
+                    logger.warning(
+                        f"Gemini API key '{label}' failed with status {ge.status_code} ({ge.message}). Rotating to next key..."
+                    )
+                    last_error = ge
+                    break
+
+                except (ConnectionError, TimeoutError) as ce:
+                    logger.warning(
+                        f"Network error on model '{model_name}' with key '{label}': {ce}. Trying fallback model..."
+                    )
+                    last_error = ce
+                    continue
+
+                except ValueError as ve:
+                    # If it's a parsing/validation error from a successful response, do not rotate blindly
+                    if "Malformed AI response" in str(ve) or "validation error" in str(ve).lower():
+                        raise ve
+                    last_error = ve
+                    continue
+
+                except Exception as e:
+                    logger.error(f"Unexpected error with model '{model_name}' on key '{label}': {e}")
+                    last_error = e
+                    continue
+
+        # If all keys and models failed
+        error_msg = f"All {len(candidate_keys)} Gemini API key(s) / fallback models failed. Last error: {str(last_error)}"
         logger.error(error_msg)
         raise RuntimeError(error_msg)
