@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-bg: #F7F8F7;
+  --color-surface: #FFFFFF;
+  --color-ink: #14181B;
+  --color-ink-muted: #8A9195;
+  --color-accent: #1E3A5F;
+  --color-error: #C0392B;
+  --color-success: #3F7D58;
+}
+
+body {
+  color: var(--color-ink);
+  background-color: var(--color-bg);
+  min-height: 100vh;
+}
+
+/* React Flow Minimal Blueprint Overrides */
+.react-flow__handle {
+  border-radius: 0px !important;
+}
+
+.react-flow__edge-path {
+  stroke: var(--color-accent) !important;
+  stroke-width: 1.5px !important;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--color-accent) !important;
+  stroke-width: 2px !important;
+}
+
+.react-flow__connection-path {
+  stroke: var(--color-accent) !important;
+  stroke-width: 1.5px !important;
+}
+
+.react-flow__attribution {
+  display: none !important;
+}
+
