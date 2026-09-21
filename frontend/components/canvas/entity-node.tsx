@@ -82,7 +82,7 @@ export function EntityNodeComponent({
           ? "border-accent ring-2 ring-accent/30 shadow-md"
           : hasErrors
           ? "border-error/80"
-          : "border-ink/80 hover:border-ink"
+          : "border-ink/80 dark:border-ink-muted/30 hover:border-ink dark:hover:border-ink-muted/50"
       }`}
     >
       {/* Card Fallback Handles */}

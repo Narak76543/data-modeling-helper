@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -18,6 +19,7 @@ const config: Config = {
         accent: "var(--color-accent)",
         error: "var(--color-error)",
         success: "var(--color-success)",
+        grid: "var(--color-grid)",
       },
       fontFamily: {
         sans: ["var(--font-ibm-plex-sans)", "system-ui", "sans-serif"],
