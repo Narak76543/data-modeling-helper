@@ -17,3 +17,28 @@ body {
   background-color: var(--color-bg);
   min-height: 100vh;
 }
+
+/* React Flow Minimal Blueprint Overrides */
+.react-flow__handle {
+  border-radius: 0px !important;
+}
+
+.react-flow__edge-path {
+  stroke: var(--color-accent) !important;
+  stroke-width: 1.5px !important;
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--color-accent) !important;
+  stroke-width: 2px !important;
+}
+
+.react-flow__connection-path {
+  stroke: var(--color-accent) !important;
+  stroke-width: 1.5px !important;
+}
+
+.react-flow__attribution {
+  display: none !important;
+}
+
