@@ -119,7 +119,8 @@ export function generateClientMarkdown(
       }
 
       const refStr = refOrDefault.length > 0 ? refOrDefault.join("; ") : "—";
-      lines.push(`| \`${f.name}\` | \`${f.dataType}\` | ${constraintsStr} | ${refStr} |`);
+      const displayType = f.length ? `${f.dataType}(${f.length})` : f.dataType;
+      lines.push(`| \`${f.name}\` | \`${displayType}\` | ${constraintsStr} | ${refStr} |`);
     }
 
     lines.push("");

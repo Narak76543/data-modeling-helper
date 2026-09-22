@@ -54,7 +54,7 @@ CRITICAL ENGINEERING CONSTRAINTS:
 2. Primary Key: Every table MUST have an `id` Primary Key (e.g. `INTEGER` or `UUID`). In the field's `description`, explicitly state the PK strategy reasoning.
 3. Human Labels & Descriptions: Every field MUST include a human-readable `label` (e.g. "Total Amount", "Student ID") and a technical/business `description` explaining its purpose and constraints.
 4. Type Precision & Sizing:
-   - Monetary/Currency: MUST use `NUMERIC` with explicit length (e.g. `10,2` or `12,2`) and default "0.00". NEVER use bare `INTEGER` or unparameterized `NUMERIC`.
+   - Monetary/Currency (e.g. price, total_amount, fee, cost, price_at_purchase): MUST use `data_type: "NUMERIC"` with explicit `length: "10,2"` (or `"12,2"`) and `default_value: "0.00"`. NEVER use bare `INTEGER` or unparameterized `NUMERIC`.
    - Timestamps vs Dates: Use `TIMESTAMP` with default "CURRENT_TIMESTAMP" for event moments; use `DATE` only for pure calendar dates (e.g. `birth_date`).
    - String Lengths: Provide sensible length for `VARCHAR` (e.g. `255`, `100`, `50`).
 5. Audit Columns: Standard tables MUST include `created_at` and `updated_at` (`TIMESTAMP`, `is_nullable: false`, `default_value: "CURRENT_TIMESTAMP"`). Small static lookup tables may omit `updated_at`.
@@ -75,17 +75,17 @@ Output strictly valid JSON matching this schema:
       "fields": [
         {
           "name": "string (column name in snake_case)",
-          "label": "string (human-readable label)",
-          "description": "string (business/technical description)",
+          "label": "string (human-readable label, e.g. 'Unit Price')",
+          "description": "string (business/technical description, e.g. 'Base unit price in USD')",
           "data_type": "INTEGER | BIGINT | VARCHAR | TEXT | BOOLEAN | TIMESTAMP | DATE | NUMERIC | UUID | JSONB",
-          "length": "string or null (e.g. '255', '10,2', '36')",
+          "length": "string or null (MUST be '10,2' for NUMERIC currency fields, '255' for VARCHAR)",
           "is_primary_key": boolean,
           "is_foreign_key": boolean,
           "references_entity": "target_table_name or null",
           "references_field": "id or null",
           "is_nullable": boolean,
           "is_unique": boolean,
-          "default_value": "string or null"
+          "default_value": "string or null (e.g. '0.00' for currency fields)"
         }
       ]
     }

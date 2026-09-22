@@ -132,6 +132,7 @@ class DataDictionaryGenerator:
                     f_dict = {
                         "name": getattr(f, "name", ""),
                         "data_type": getattr(f, "data_type", "VARCHAR"),
+                        "length": getattr(f, "length", None),
                         "is_primary_key": getattr(f, "is_primary_key", False),
                         "is_foreign_key": getattr(f, "is_foreign_key", False),
                         "references_entity_id": getattr(f, "references_entity_id", None),
@@ -142,7 +143,10 @@ class DataDictionaryGenerator:
                     }
 
                 col_name = f"`{f_dict.get('name')}`"
-                dt = f"`{f_dict.get('data_type')}`"
+                raw_dt = f_dict.get("data_type", "VARCHAR")
+                len_val = f_dict.get("length")
+                dt_str = f"{raw_dt}({len_val})" if len_val else raw_dt
+                dt = f"`{dt_str}`"
 
                 constraints: List[str] = []
                 if f_dict.get("is_primary_key"):

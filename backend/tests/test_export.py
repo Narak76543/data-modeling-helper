@@ -183,3 +183,21 @@ def test_export_excel_api_endpoint(client: TestClient):
     assert "ecommerce_backend_field_spec.xlsx" in response.headers["content-disposition"]
     assert len(response.content) > 100
 
+
+def test_markdown_generation_with_data_type_length():
+    entities = [
+        {
+            "id": "e_products",
+            "name": "products",
+            "fields": [
+                {"id": "f1", "name": "id", "data_type": "INTEGER", "is_primary_key": True},
+                {"id": "f2", "name": "price", "data_type": "NUMERIC", "length": "10,2"},
+                {"id": "f3", "name": "sku", "data_type": "VARCHAR", "length": "50"},
+            ],
+        }
+    ]
+    doc = DataDictionaryGenerator.generate_markdown(entities=entities, project_name="Catalog")
+    assert "`NUMERIC(10,2)`" in doc
+    assert "`VARCHAR(50)`" in doc
+
+

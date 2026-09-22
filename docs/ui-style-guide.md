@@ -141,3 +141,37 @@ Fields render in a fixed-column grid, not stacked badges:
   belongs to.
 - All rows align to the same column grid regardless of whether a row 
   has an icon or chips — column position never shifts based on content.
+## Semantic text coloring (field rows)
+
+Inspired by code-editor syntax highlighting (e.g. One Dark Pro) — 
+different kinds of information get their own consistent color, so the 
+eye can jump to what it's scanning for (types, references, defaults) 
+without reading every character. Colors stay muted/desaturated to fit 
+the existing minimal palette — this is about differentiation, not 
+decoration.
+
+| Token | Light | Dark | Used for |
+|---|---|---|---|
+| `--color-ink` | `#14181B` | `#D4D7D6` | Field names, entity names (unchanged — the "identifier" default) |
+| `--color-type` | `#8A5FBF` | `#B18FDB` | Data types (INTEGER, VARCHAR, etc.) — like a type/class color in code |
+| `--color-reference` | `#1E3A5F` | `#6FA0C9` | FK target references ("→ users.id") — same as existing --color-accent, reused deliberately since it's already the "relationship" color |
+| `--color-literal` | `#3F7D58` | `#6FB187` | Default values — same hue family as --color-success, since a default is a "known good" value |
+| `--color-ink-muted` | `#8A9195` | `#8F969A` | Labels, helper text (unchanged) |
+
+Rules:
+
+- Only field rows get semantic coloring — entity names, sidebar text, 
+  and UI chrome stay in plain `--color-ink`/`--color-ink-muted`. This 
+  keeps the effect targeted at the thing that actually needs scanning 
+  (dense field lists), not applied everywhere until it becomes noise.
+- Each color is used consistently for its category everywhere in the 
+  app — a data type is always `--color-type`, never contextually 
+  different. Consistency is what makes this scannable; an inconsistent 
+  scheme is worse than no color at all.
+- Constraint chips (PK/FK/NN/UQ) keep their existing fill-based 
+  treatment — they're not part of this text-coloring system, they're 
+  already a distinct visual language (filled badges, not colored text).
+- Maximum 4 semantic text colors total, plus the existing ink/muted 
+  pair. Do not add more categories without revisiting this table — 
+  more than ~4-5 distinct hues stops being scannable and starts being 
+  visual noise, defeating the purpose.

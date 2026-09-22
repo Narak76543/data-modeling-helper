@@ -1,6 +1,6 @@
 import re
-from typing import List, Optional
-from pydantic import BaseModel, Field, field_validator
+from typing import List, Optional, Any
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 ALLOWED_SQL_TYPES = {
     "INTEGER", "BIGINT", "VARCHAR", "TEXT", "BOOLEAN",
@@ -24,6 +24,18 @@ class AIGeneratedField(BaseModel):
     is_unique: bool = False
     default_value: Optional[str] = None
 
+    @model_validator(mode="before")
+    @classmethod
+    def extract_type_and_length(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            raw_type = data.get("data_type")
+            if isinstance(raw_type, str) and "(" in raw_type and ")" in raw_type:
+                base_type = raw_type[: raw_type.index("(")].strip().upper()
+                inner_len = raw_type[raw_type.index("(") + 1 : raw_type.index(")")].strip()
+                data["data_type"] = base_type
+                if not data.get("length"):
+                    data["length"] = inner_len
+        return data
 
     @field_validator("name")
     @classmethod
@@ -49,7 +61,7 @@ class AIGeneratedField(BaseModel):
             return "BOOLEAN"
         if "TIME" in upper or "DATETIME" in upper:
             return "TIMESTAMP"
-        if "FLOAT" in upper or "DECIMAL" in upper or "DOUBLE" in upper:
+        if "NUM" in upper or "FLOAT" in upper or "DECIMAL" in upper or "DOUBLE" in upper or "MONEY" in upper or "CURRENCY" in upper:
             return "NUMERIC"
         if "JSON" in upper:
             return "JSONB"

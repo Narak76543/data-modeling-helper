@@ -23,7 +23,7 @@ CRITICAL ENGINEERING CONSTRAINTS:
 3. Primary Key: Always include an `id` Primary Key (e.g. `INTEGER` or `UUID`). In the field's `description`, explicitly state the PK strategy reasoning (e.g. "Sequential integer primary key" or "UUID primary key for distributed security").
 4. Human Labels & Descriptions: Every field MUST have a clean, human-readable `label` (e.g. "Unit Price", "Email Address") and a clear technical/business `description` explaining its purpose and constraints.
 5. Type Precision & Sizing:
-   - Monetary/Currency/Financial amounts: MUST use `NUMERIC` with explicit length/precision (e.g. `10,2` or `12,2`) and sensible default (e.g. "0.00"). NEVER use bare `INTEGER` or unparameterized `NUMERIC`.
+   - Monetary/Currency/Financial amounts (e.g. price, total_amount, fee, cost): MUST use `data_type: "NUMERIC"` with explicit `length: "10,2"` (or `"12,2"`) and `default_value: "0.00"`. NEVER use bare `INTEGER` or unparameterized `NUMERIC`.
    - Event Timestamps vs Calendar Dates: Use `TIMESTAMP` for exact event moments with default "CURRENT_TIMESTAMP". Use `DATE` only for pure calendar dates without time (e.g. `birth_date`).
    - String Lengths: Specify sensible length for `VARCHAR` (e.g. `255`, `100`, `50`).
 6. Audit Columns: Standard entities MUST include `created_at` and `updated_at` (`TIMESTAMP`, `is_nullable: false`, `default_value: "CURRENT_TIMESTAMP"`).
@@ -37,14 +37,14 @@ Output strictly valid JSON matching this schema:
   "fields": [
     {
       "name": "string (column name in snake_case)",
-      "label": "string (human-readable label, e.g. 'Email Address')",
-      "description": "string (business/technical description)",
+      "label": "string (human-readable label, e.g. 'Unit Price')",
+      "description": "string (business/technical description, e.g. 'Base selling price in USD')",
       "data_type": "INTEGER | BIGINT | VARCHAR | TEXT | BOOLEAN | TIMESTAMP | DATE | NUMERIC | UUID | JSONB",
-      "length": "string or null (e.g. '255', '10,2', '36')",
+      "length": "string or null (MUST be '10,2' for NUMERIC currency fields, '255' for VARCHAR)",
       "is_primary_key": boolean,
       "is_nullable": boolean,
       "is_unique": boolean,
-      "default_value": "string or null"
+      "default_value": "string or null (e.g. '0.00' for currency, 'CURRENT_TIMESTAMP' for audit timestamps)"
     }
   ]
 }
@@ -227,6 +227,7 @@ class EntityAIGenerator:
             fields.insert(0, pk_field)
 
         # 2. Enrich and normalize each field
+        MONETARY_KEYWORDS = ("price", "amount", "cost", "total", "balance", "fee", "salary", "discount", "rate", "tax", "subtotal", "paid")
         for f in fields:
             if not f.label:
                 f.label = cls._format_label(f.name)
@@ -238,7 +239,16 @@ class EntityAIGenerator:
                 else:
                     f.description = f"{f.label} attribute"
 
-            # Precision/length defaults
+            # Precision/length defaults and monetary field type enforcement (FR-34)
+            is_monetary = any(kw in f.name.lower() for kw in MONETARY_KEYWORDS)
+            if is_monetary:
+                if f.data_type in ("INTEGER", "BIGINT", "NUMERIC", "VARCHAR", "FLOAT", "DECIMAL"):
+                    f.data_type = "NUMERIC"
+                    if not f.length:
+                        f.length = "10,2"
+                    if not f.default_value and not f.is_nullable:
+                        f.default_value = "0.00"
+
             if f.data_type == "NUMERIC" and not f.length:
                 f.length = "10,2"
             elif f.data_type == "VARCHAR" and not f.length:
