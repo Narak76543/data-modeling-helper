@@ -34,7 +34,30 @@ export function estimateNodeHeight(node: EntityNode): number {
 }
 
 /**
- * Determine the optimal field-level or card-level handles for an edge.
+ * Systematic Muted Color Palette for relationship lines (Issue 3 / ui-style-guide.md).
+ * Deterministically color-codes edges by source entity.
+ */
+export const EDGE_PALETTE = [
+  { light: "#1E3A5F", dark: "#6FA0C9" }, // Slate Blue (Default)
+  { light: "#2E6F68", dark: "#6AB8AF" }, // Steel Teal
+  { light: "#5C4D82", dark: "#9D8BC9" }, // Muted Violet
+  { light: "#8C6527", dark: "#C7A263" }, // Muted Ochre
+  { light: "#8E4B3E", dark: "#C97E72" }, // Muted Rust
+];
+
+export function getEdgeColor(sourceIdOrName: string, isDark: boolean = false): string {
+  if (!sourceIdOrName) return isDark ? EDGE_PALETTE[0].dark : EDGE_PALETTE[0].light;
+  let hash = 0;
+  for (let i = 0; i < sourceIdOrName.length; i++) {
+    hash = (hash << 5) - hash + sourceIdOrName.charCodeAt(i);
+    hash |= 0;
+  }
+  const idx = Math.abs(hash) % EDGE_PALETTE.length;
+  return isDark ? EDGE_PALETTE[idx].dark : EDGE_PALETTE[idx].light;
+}
+
+/**
+ * Determine the optimal field-level handles for an edge with fallback.
  */
 export function resolveEdgeHandles(
   edge: RelationshipEdge,
@@ -51,64 +74,81 @@ export function resolveEdgeHandles(
     return { sourceHandle: "source-right", targetHandle: "target-left" };
   }
 
-  // 1. Look for specific FK field in source pointing to target
   const sourceFields: EntityField[] = sourceNode.data.fields || [];
   const targetFields: EntityField[] = targetNode.data.fields || [];
 
-  const fkField = sourceFields.find(
-    (f) => f.isForeignKey && (f.referencesEntityId === targetNode.id || f.referencesEntityId === targetNode.data.name)
-  );
+  // Check 1: Explicit field IDs in edge data or handles
+  const explicitSourceFieldId = (edge.data as any)?.sourceFieldId;
+  const explicitTargetFieldId = (edge.data as any)?.targetFieldId;
 
-  const pkField = targetFields.find(
-    (f) => (fkField?.referencesFieldId && f.id === fkField.referencesFieldId) || f.isPrimaryKey
-  ) || targetFields[0];
+  let sourceField = sourceFields.find((f) => f.id === explicitSourceFieldId);
+  let targetField = targetFields.find((f) => f.id === explicitTargetFieldId);
+
+  // Check 2: Bidirectional foreign key lookup
+  if (!sourceField || !targetField) {
+    // Normal direction: source has FK pointing to target
+    const fkInSource = sourceFields.find(
+      (f) =>
+        f.isForeignKey &&
+        (f.referencesEntityId === targetNode.id ||
+          f.referencesEntityId === targetNode.data.name ||
+          (edge.data as any)?.sourceField === f.name)
+    );
+    if (fkInSource) {
+      sourceField = fkInSource;
+      targetField =
+        targetFields.find(
+          (f) => (fkInSource.referencesFieldId && f.id === fkInSource.referencesFieldId) || f.isPrimaryKey
+        ) || targetFields[0];
+    } else {
+      // Reverse direction: target has FK pointing to source
+      const fkInTarget = targetFields.find(
+        (f) =>
+          f.isForeignKey &&
+          (f.referencesEntityId === sourceNode.id ||
+            f.referencesEntityId === sourceNode.data.name ||
+            (edge.data as any)?.targetField === f.name)
+      );
+      if (fkInTarget) {
+        targetField = fkInTarget;
+        sourceField =
+          sourceFields.find(
+            (f) => (fkInTarget.referencesFieldId && f.id === fkInTarget.referencesFieldId) || f.isPrimaryKey
+          ) || sourceFields[0];
+      }
+    }
+  }
+
+  // Fallback to first PK or first field if still undefined
+  if (!sourceField) {
+    sourceField = sourceFields.find((f) => f.isPrimaryKey) || sourceFields[0];
+  }
+  if (!targetField) {
+    targetField = targetFields.find((f) => f.isPrimaryKey) || targetFields[0];
+  }
 
   const isTargetToTheRight = targetCenter.x >= sourceCenter.x;
-  const isTargetBelow = targetCenter.y >= sourceCenter.y;
 
-  // 2. If both fields exist, use field-level horizontal connection ports
-  if (fkField && pkField) {
+  // Use horizontal field connection handles
+  if (sourceField && targetField) {
     if (isTargetToTheRight) {
       return {
-        sourceHandle: `field-source-right-${fkField.id}`,
-        targetHandle: `field-target-left-${pkField.id}`,
+        sourceHandle: `field-source-right-${sourceField.id}`,
+        targetHandle: `field-target-left-${targetField.id}`,
       };
     } else {
       return {
-        sourceHandle: `field-source-left-${fkField.id}`,
-        targetHandle: `field-target-right-${pkField.id}`,
+        sourceHandle: `field-source-left-${sourceField.id}`,
+        targetHandle: `field-target-right-${targetField.id}`,
       };
     }
   }
 
-  // 3. Fallback to card-level handles if no specific FK field is matched
+  // Card-level fallback only if entities have 0 fields
   const dx = targetCenter.x - sourceCenter.x;
-  const dy = targetCenter.y - sourceCenter.y;
-
-  if (direction === "TB") {
-    if (Math.abs(dy) > Math.abs(dx) * 1.2) {
-      // Primarily vertical
-      return dy < 0
-        ? { sourceHandle: "source-top", targetHandle: "target-bottom" }
-        : { sourceHandle: "source-bottom", targetHandle: "target-top" };
-    } else {
-      // Primarily horizontal
-      return dx < 0
-        ? { sourceHandle: "source-left", targetHandle: "target-right" }
-        : { sourceHandle: "source-right", targetHandle: "target-left" };
-    }
-  } else {
-    // Primarily horizontal (LR)
-    if (Math.abs(dx) > Math.abs(dy) * 1.2) {
-      return dx < 0
-        ? { sourceHandle: "source-left", targetHandle: "target-right" }
-        : { sourceHandle: "source-right", targetHandle: "target-left" };
-    } else {
-      return dy < 0
-        ? { sourceHandle: "source-top", targetHandle: "target-bottom" }
-        : { sourceHandle: "source-bottom", targetHandle: "target-top" };
-    }
-  }
+  return dx >= 0
+    ? { sourceHandle: "source-right", targetHandle: "target-left" }
+    : { sourceHandle: "source-left", targetHandle: "target-right" };
 }
 
 /**
@@ -127,8 +167,9 @@ export function getLayoutedElements(
   g.setGraph({
     rankdir: direction,
     ranker: "network-simplex", // Optimal network-simplex ranking to minimize line length & crossings
-    nodesep: direction === "TB" ? 90 : 80, // Horizontal channel width between sibling nodes
-    ranksep: direction === "TB" ? 140 : 160, // Vertical rank corridor for clean orthogonal routing
+    nodesep: direction === "TB" ? 100 : 90, // Spacious horizontal channel width between sibling nodes
+    ranksep: direction === "TB" ? 150 : 170, // Vertical rank corridor for clean orthogonal routing
+    edgesep: 30, // Minimum separation between parallel edges to prevent overlapping
     marginx: 80,
     marginy: 80,
   });

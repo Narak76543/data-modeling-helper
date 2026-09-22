@@ -19,7 +19,7 @@ export function OrthogonalEdge({
   style = {},
   markerEnd,
   data,
-}: EdgeProps<Edge<{ isDimmed?: boolean; isHighlighted?: boolean }>>) {
+}: EdgeProps<Edge<{ isDimmed?: boolean; isHighlighted?: boolean; edgeColor?: string }>>) {
   const [edgePath] = getSmoothStepPath({
     sourceX,
     sourceY,
@@ -33,19 +33,40 @@ export function OrthogonalEdge({
 
   const isDimmed = Boolean(data?.isDimmed);
   const isHighlighted = Boolean(data?.isHighlighted);
+  const strokeColor = data?.edgeColor || style.stroke || "var(--color-accent)";
 
   return (
-    <BaseEdge
-      id={id}
-      path={edgePath}
-      markerEnd={markerEnd}
-      style={{
-        stroke: "var(--color-accent)",
-        strokeWidth: isHighlighted ? 2.5 : 1.5,
-        opacity: isDimmed ? 0.15 : 1,
-        transition: "opacity 150ms ease, stroke-width 150ms ease",
-        ...style,
-      }}
-    />
+    <g className="react-flow__edge-group">
+      <BaseEdge
+        id={id}
+        path={edgePath}
+        markerEnd={markerEnd}
+        style={{
+          stroke: strokeColor,
+          strokeWidth: isHighlighted ? 2.5 : 1.5,
+          opacity: isDimmed ? 0.15 : 1,
+          transition: "opacity 150ms ease, stroke-width 150ms ease, stroke 150ms ease",
+          ...style,
+        }}
+      />
+      {/* Source Anchor Port (Field Connection Dot) */}
+      <circle
+        cx={sourceX}
+        cy={sourceY}
+        r={3}
+        fill={strokeColor}
+        opacity={isDimmed ? 0.15 : 1}
+        className="transition-opacity duration-150 pointer-events-none"
+      />
+      {/* Target Anchor Port (Referenced Column Dot) */}
+      <circle
+        cx={targetX}
+        cy={targetY}
+        r={3}
+        fill={strokeColor}
+        opacity={isDimmed ? 0.15 : 1}
+        className="transition-opacity duration-150 pointer-events-none"
+      />
+    </g>
   );
 }

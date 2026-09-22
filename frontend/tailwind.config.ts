@@ -20,6 +20,9 @@ const config: Config = {
         error: "var(--color-error)",
         success: "var(--color-success)",
         grid: "var(--color-grid)",
+        type: "var(--color-type)",
+        reference: "var(--color-reference)",
+        literal: "var(--color-literal)",
       },
       fontFamily: {
         sans: ["var(--font-ibm-plex-sans)", "system-ui", "sans-serif"],

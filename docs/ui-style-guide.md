@@ -47,8 +47,7 @@ Rule: `--color-ink` and `--color-accent` do almost all the visual work. Error/su
 - **Canvas is the only "loud" surface.** Sidebar, toolbar, and panels stay quiet — thin borders, no shadows, minimal iconography with text labels.
 - **Sidebar** (~220px, collapsible): entity list + validation summary only. Nothing else lives here.
 - **No persistent top navbar** beyond a thin header with the project name and one primary action (e.g. "Export"). Don't fill header space with icons that aren't needed yet.
-- **Entities:** flat white cards, 1px hairline border in `--color-ink`, 2px max border radius. Name + field list, single hairline divider between them. No shadow.
-- **Relationships:** orthogonal (right-angle) lines in `--color-accent`, 1px weight. No arrowheads unless direction is ambiguous.
+- **Relationships:** orthogonal (right-angle) lines with circular anchor ports (dot endpoints) precisely terminating at the connected field rows. Line colors are systematically assigned by source entity using a fixed palette of 5 muted hues (Slate Blue `#1E3A5F`/`#6FA0C9`, Steel Teal `#2E6F68`/`#6AB8AF`, Muted Violet `#5C4D82`/`#9D8BC9`, Muted Ochre `#8C6527`/`#C7A263`, Muted Rust `#8E4B3E`/`#C97E72`), ensuring all relations originating from the same table share a hue without visual noise. 1.5px weight, no decorative arrowheads.
 - **Validation feedback:** inline, next to the exact field — one short line, no icons unless the icon replaces text rather than duplicating it.
 
 Minimal layout concept:

@@ -187,17 +187,18 @@ export function FieldRow({
           )}
         </div>
 
-        {/* Col 3: Data Type Dropdown (compact fixed width) */}
+        {/* Col 3: Data Type Dropdown (compact fixed width with semantic coloring) */}
         <div className="shrink-0">
           <select
             value={field.dataType}
             onChange={(e) =>
               onUpdate({ dataType: e.target.value as SQLDataType })
             }
-            className="text-[11px] font-mono bg-transparent text-ink-muted hover:text-ink cursor-pointer border-none outline-none py-0 px-0.5 rounded-none font-medium"
+            className="text-[11px] font-mono bg-transparent text-type hover:opacity-80 cursor-pointer border-none outline-none py-0 px-0.5 rounded-none font-medium"
+            title={field.length ? `${field.dataType}(${field.length})` : field.dataType}
           >
             {SQL_DATA_TYPES.map((type) => (
-              <option key={type} value={type} className="bg-surface text-ink">
+              <option key={type} value={type} className="bg-surface text-type font-mono">
                 {type}
               </option>
             ))}
@@ -343,9 +344,9 @@ export function FieldRow({
 
       {/* Visually Nested / Indented FK Target Reference Selector */}
       {field.isForeignKey && (
-        <div className="ml-5 mr-2 mb-1 pl-2 border-l-2 border-accent/40 bg-bg/40 py-1 px-1.5 flex items-center justify-between text-[10px] font-mono text-ink-muted rounded-r-[2px]">
+        <div className="ml-5 mr-2 mb-1 pl-2 border-l-2 border-reference/40 bg-bg/40 py-1 px-1.5 flex items-center justify-between text-[10px] font-mono text-ink-muted rounded-r-[2px]">
           <div className="flex items-center space-x-1">
-            <span className="text-accent font-semibold">→ Target:</span>
+            <span className="text-reference font-semibold">→ Target:</span>
             <select
               value={field.referencesEntityId || ""}
               onChange={(e) => {
@@ -356,7 +357,7 @@ export function FieldRow({
                   referencesFieldId: targetE?.data.fields[0]?.id || undefined,
                 });
               }}
-              className="text-[10px] font-mono bg-surface border border-ink/20 dark:border-ink-muted/25 px-1 py-0.2 text-ink rounded-none outline-none max-w-[100px] truncate"
+              className="text-[10px] font-mono bg-surface border border-ink/20 dark:border-ink-muted/25 px-1 py-0.2 text-reference font-medium rounded-none outline-none max-w-[100px] truncate"
             >
               <option value="">(select entity)</option>
               {targetEntityCandidates.map((cand) => (
@@ -372,7 +373,7 @@ export function FieldRow({
                 onChange={(e) =>
                   onUpdate({ referencesFieldId: e.target.value || undefined })
                 }
-                className="text-[10px] font-mono bg-surface border border-ink/20 dark:border-ink-muted/25 px-1 py-0.2 text-ink rounded-none outline-none max-w-[90px] truncate"
+                className="text-[10px] font-mono bg-surface border border-ink/20 dark:border-ink-muted/25 px-1 py-0.2 text-reference font-medium rounded-none outline-none max-w-[90px] truncate"
               >
                 <option value="">(select field)</option>
                 {targetFieldCandidates.map((f) => (
@@ -383,6 +384,11 @@ export function FieldRow({
               </select>
             )}
           </div>
+          {field.defaultValue && (
+            <span className="text-literal text-[9px] font-mono shrink-0 ml-1" title={`Default: ${field.defaultValue}`}>
+              ={field.defaultValue}
+            </span>
+          )}
         </div>
       )}
 

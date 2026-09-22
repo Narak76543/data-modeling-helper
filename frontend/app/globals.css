@@ -11,6 +11,9 @@
   --color-error: #C0392B;
   --color-success: #3F7D58;
   --color-grid: #DADDD9;
+  --color-type: #8A5FBF;
+  --color-reference: #1E3A5F;
+  --color-literal: #3F7D58;
 }
 
 .dark {
@@ -22,6 +25,9 @@
   --color-error: #D97A70;
   --color-success: #6FB187;
   --color-grid: #26292C;
+  --color-type: #B18FDB;
+  --color-reference: #6FA0C9;
+  --color-literal: #6FB187;
 }
 
 body {

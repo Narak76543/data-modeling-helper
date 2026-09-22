@@ -12,7 +12,7 @@ import {
 } from "@xyflow/react";
 import type { EntityNode, RelationshipEdge, EntityField } from "@/types/canvas";
 import type { AIGeneratedProject } from "@/types/project";
-import { getLayoutedElements, type LayoutDirection } from "@/lib/layout";
+import { getLayoutedElements, getEdgeColor, type LayoutDirection } from "@/lib/layout";
 
 const INITIAL_NODES: EntityNode[] = [
   {
@@ -39,13 +39,21 @@ const INITIAL_NODES: EntityNode[] = [
           isNullable: false,
           isUnique: true,
         },
+        {
+          id: "field-users-name",
+          name: "name",
+          dataType: "VARCHAR",
+          isPrimaryKey: false,
+          isNullable: true,
+          isUnique: false,
+        },
       ],
     },
   },
   {
     id: "entity-orders",
     type: "entity",
-    position: { x: 480, y: 100 },
+    position: { x: 500, y: 100 },
     data: {
       id: "entity-orders",
       name: "orders",
@@ -62,10 +70,22 @@ const INITIAL_NODES: EntityNode[] = [
           id: "field-orders-user-id",
           name: "user_id",
           dataType: "INTEGER",
+          isPrimaryKey: false,
           isForeignKey: true,
           referencesEntityId: "entity-users",
           referencesFieldId: "field-users-id",
           isNullable: false,
+          isUnique: false,
+        },
+        {
+          id: "field-orders-total",
+          name: "total_amount",
+          dataType: "NUMERIC",
+          length: "10,2",
+          isPrimaryKey: false,
+          isNullable: false,
+          isUnique: false,
+          defaultValue: "0.00",
         },
       ],
     },
@@ -80,6 +100,11 @@ const INITIAL_EDGES: RelationshipEdge[] = [
     sourceHandle: "field-source-left-field-orders-user-id",
     targetHandle: "field-target-right-field-users-id",
     type: "orthogonal",
+    data: {
+      edgeColor: getEdgeColor("orders"),
+      sourceFieldId: "field-orders-user-id",
+      targetFieldId: "field-users-id",
+    },
   },
 ];
 
@@ -106,11 +131,15 @@ export function useCanvasState() {
 
   const onConnect: OnConnect = useCallback(
     (params: Connection) => {
+      const edgeColor = getEdgeColor(params.source || "");
       setEdges((eds) =>
         addEdge(
           {
             ...params,
             type: "orthogonal",
+            data: {
+              edgeColor,
+            },
           },
           eds
         )
@@ -272,14 +301,27 @@ export function useCanvasState() {
 
         if (!sourceNodeId || !targetNodeId) return null;
 
+        const sourceFieldId = entityFieldMap[sourceNodeId]?.[rel.source_field];
+        const targetFieldId = entityFieldMap[targetNodeId]?.[rel.target_field || "id"];
+        const edgeColor = getEdgeColor(rel.source_entity);
+
         return {
           id: `edge-${batchId}-${rIdx}`,
           source: sourceNodeId,
           target: targetNodeId,
+          sourceHandle: sourceFieldId ? `field-source-left-${sourceFieldId}` : undefined,
+          targetHandle: targetFieldId ? `field-target-right-${targetFieldId}` : undefined,
           type: "orthogonal",
           style: {
             strokeDasharray: "4 4",
-            stroke: "#1E3A5F",
+            stroke: edgeColor,
+          },
+          data: {
+            sourceField: rel.source_field,
+            targetField: rel.target_field || "id",
+            sourceFieldId,
+            targetFieldId,
+            edgeColor,
           },
         } as RelationshipEdge;
       })
@@ -319,7 +361,9 @@ export function useCanvasState() {
     setEdges((eds) =>
       eds.map((edge) => ({
         ...edge,
-        style: undefined, // solid line
+        style: {
+          stroke: (edge.data as any)?.edgeColor || "var(--color-accent)",
+        },
       }))
     );
 
@@ -470,6 +514,7 @@ export function useCanvasState() {
 
           if (updates.isForeignKey && updates.referencesEntityId) {
             const targetFieldId = updates.referencesFieldId || "id";
+            const edgeColor = getEdgeColor(entityId);
             const newEdge: RelationshipEdge = {
               id: edgeId,
               source: entityId,
@@ -477,6 +522,11 @@ export function useCanvasState() {
               sourceHandle: `field-source-left-${fieldId}`,
               targetHandle: `field-target-right-${targetFieldId}`,
               type: "orthogonal",
+              data: {
+                edgeColor,
+                sourceFieldId: fieldId,
+                targetFieldId,
+              },
             };
             return [...filtered, newEdge];
           }
