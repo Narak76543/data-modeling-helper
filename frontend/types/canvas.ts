@@ -29,6 +29,9 @@ export interface EntityField {
   id: string;
   name: string;
   dataType: SQLDataType;
+  label?: string;
+  description?: string;
+  length?: string;
   isPrimaryKey?: boolean;
   isForeignKey?: boolean;
   referencesEntityId?: string;

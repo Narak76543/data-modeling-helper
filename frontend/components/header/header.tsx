@@ -10,7 +10,7 @@ interface HeaderProps {
 
 export function Header({ onOpenExport, onOpenSettings }: HeaderProps) {
   return (
-    <header className="h-11 border-b border-ink/20 bg-surface px-4 flex items-center justify-between select-none">
+    <header className="h-11 border-b border-ink/20 dark:border-ink-muted/30 bg-surface px-4 flex items-center justify-between select-none">
       <div className="flex items-center space-x-2">
         <span className="text-sm font-semibold tracking-tight text-ink font-sans">
           Data Modeling Helper
@@ -20,7 +20,7 @@ export function Header({ onOpenExport, onOpenSettings }: HeaderProps) {
         <button
           type="button"
           onClick={onOpenSettings}
-          className="flex items-center space-x-1.5 border border-ink/20 hover:bg-ink/5 text-ink text-xs font-medium py-1 px-2.5 rounded-[2px] transition-colors"
+          className="flex items-center space-x-1.5 border border-ink/20 dark:border-ink-muted/30 hover:bg-ink/5 dark:hover:bg-bg text-ink text-xs font-medium py-1 px-2.5 rounded-[2px] transition-colors"
           title="Manage Gemini API Keys & Settings"
         >
           <Settings className="w-3.5 h-3.5 text-accent" />

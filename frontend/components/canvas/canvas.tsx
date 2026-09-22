@@ -199,18 +199,17 @@ export function Canvas({
         <Background
           variant={BackgroundVariant.Dots}
           gap={16}
-          size={1}
-          color="var(--color-ink-muted)"
-          style={{ opacity: 0.35 }}
+          size={1.2}
+          color="var(--color-grid)"
         />
         <Controls
           showInteractive={false}
-          className="!bg-surface !border !border-ink/20 !rounded-[2px] !shadow-none [&>button]:!border-b [&>button]:!border-ink/10 [&>button]:!text-ink [&>button:hover]:!bg-bg"
+          className="!bg-surface !border !border-ink/20 dark:!border-ink-muted/30 !rounded-[2px] !shadow-none [&>button]:!border-b [&>button]:!border-ink/10 dark:[&>button]:!border-ink-muted/15 [&>button]:!text-ink [&>button:hover]:!bg-bg"
         />
         <MiniMap
           nodeColor={(n) => (n.data.isPreview ? "var(--color-accent)" : "var(--color-ink-muted)")}
-          maskColor="rgba(20, 24, 27, 0.08)"
-          className="!bg-surface !border !border-ink/20 !rounded-[2px] !shadow-none !bottom-4 !right-4 !w-36 !h-24"
+          maskColor="rgba(0, 0, 0, 0.25)"
+          className="!bg-surface !border !border-ink/20 dark:!border-ink-muted/30 !rounded-[2px] !shadow-none !bottom-4 !right-4 !w-36 !h-24"
           zoomable
           pannable
         />

@@ -10,8 +10,8 @@ interface LayoutControlsProps {
 
 export function LayoutControls({ onAutoLayout }: LayoutControlsProps) {
   return (
-    <div className="absolute top-3 right-3 z-10 flex items-center bg-surface/95 backdrop-blur-sm border border-ink/20 shadow-sm rounded-[2px] p-1 space-x-1 select-none">
-      <div className="flex items-center px-1.5 py-0.5 text-[10px] font-mono font-semibold text-ink-muted uppercase tracking-wider border-r border-ink/10 mr-0.5">
+    <div className="absolute top-3 right-3 z-10 flex items-center bg-surface/95 backdrop-blur-sm border border-ink/20 dark:border-ink-muted/30 shadow-sm rounded-[2px] p-1 space-x-1 select-none">
+      <div className="flex items-center px-1.5 py-0.5 text-[10px] font-mono font-semibold text-ink-muted uppercase tracking-wider border-r border-ink/10 dark:border-ink-muted/20 mr-0.5">
         <Sparkles className="w-3 h-3 text-accent mr-1" />
         <span>Layout</span>
       </div>

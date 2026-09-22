@@ -197,3 +197,62 @@ export async function exportCanvasAsPng(containerSelector = ".react-flow__viewpo
   link.click();
   document.body.removeChild(link);
 }
+
+export async function downloadFieldSpecExcel(
+  nodes: EntityNode[],
+  projectName = "Data Modeling Helper Project"
+): Promise<void> {
+  const payload = {
+    project_name: projectName,
+    entities: nodes.map((n) => ({
+      name: n.data.name || "entity",
+      pos_x: n.position.x || 0,
+      pos_y: n.position.y || 0,
+      fields: (n.data.fields || []).map((f, idx) => ({
+        name: f.name,
+        data_type: f.dataType,
+        label: f.label || undefined,
+        description: f.description || undefined,
+        length: f.length || undefined,
+        is_primary_key: Boolean(f.isPrimaryKey),
+        is_foreign_key: Boolean(f.isForeignKey),
+        references_entity_id: f.referencesEntityId || undefined,
+        references_field_id: f.referencesFieldId || undefined,
+        is_nullable: f.isNullable !== undefined ? f.isNullable : true,
+        is_unique: Boolean(f.isUnique),
+        default_value: f.defaultValue || undefined,
+        order_index: idx,
+      })),
+    })),
+  };
+
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+  const response = await fetch(`${API_BASE_URL}/export/excel`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    let errMsg = "Failed to export Excel field specification";
+    try {
+      const err = await response.json();
+      if (err?.detail) errMsg = typeof err.detail === "string" ? err.detail : JSON.stringify(err.detail);
+    } catch {}
+    throw new Error(errMsg);
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  const safeName = projectName.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+  link.download = `${safeName}_field_spec.xlsx`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+

@@ -82,24 +82,62 @@ Minimal layout concept:
 ## Dark mode
 
 Respects `prefers-color-scheme` by default; user can override via a 
-toggle in Settings. Same blueprint identity — dark mode is not just 
-inverted colors, it keeps the same structural logic (ink lines on a 
-quiet surface, accent used only for meaning).
+toggle in Settings. Dark mode should feel calm and low-strain at 
+night — never pure black background with near-white text, which 
+produces *higher* effective contrast than light mode, not lower.
 
 | Token | Light | Dark |
 |---|---|---|
-| `--color-bg` | `#F7F8F7` | `#14181B` |
-| `--color-surface` | `#FFFFFF` | `#1D2226` |
-| `--color-ink` | `#14181B` | `#E8EAEA` |
-| `--color-ink-muted` | `#8A9195` | `#8A9195` |
-| `--color-accent` | `#1E3A5F` | `#5B8DBF` |
-| `--color-error` | `#C0392B` | `#E0665A` |
-| `--color-success` | `#3F7D58` | `#5FAE7C` |
-| `--color-grid` | `#DADDD9` | `#262B2F` |
+| `--color-bg` | `#F7F8F7` | `#1A1D1F` |
+| `--color-surface` | `#FFFFFF` | `#232629` |
+| `--color-ink` | `#14181B` | `#D4D7D6` |
+| `--color-ink-muted` | `#8A9195` | `#8F969A` |
+| `--color-accent` | `#1E3A5F` | `#6FA0C9` |
+| `--color-error` | `#C0392B` | `#D97A70` |
+| `--color-success` | `#3F7D58` | `#6FB187` |
+| `--color-grid` | `#DADDD9` | `#26292C` |
 
-Rule: dark-mode accent/error/success are lightened versions of their 
-light-mode counterparts, not different hues — same meaning, adjusted 
-for contrast on a dark surface (WCAG AA minimum against `--color-bg`).
-Entity card borders in dark mode use `--color-ink-muted` at reduced 
-opacity rather than full `--color-ink`, since a full-contrast hairline 
-border reads as too harsh on a dark background.
+Rules for dark mode specifically:
+
+- **No pure black, no pure white.** `--color-bg` is a soft dark gray, 
+  never `#000000`. `--color-ink` sits around 85% perceived brightness, 
+  never `#FFFFFF` — full white on dark background is the single 
+  biggest cause of night-time eye strain in dark themes.
+- **Lower saturation across the board.** Dark-mode accent/error/success 
+  are desaturated and lightened versions of their light-mode 
+  counterparts (not just brightened) — a saturated blue or red that 
+  looks fine in daylight becomes visually loud against a dark surface.
+- **Borders use opacity, not solid color.** Entity card borders in 
+  dark mode use `--color-ink-muted` at ~30–40% opacity rather than a 
+  solid hairline — a full-strength border against a dark surface reads 
+  as a harsh outline. Same applies to the grid dot pattern 
+  (`--color-grid` is intentionally close to `--color-bg`, barely 
+  visible, just enough to signal "workspace").
+- **Surface separation stays subtle.** `--color-surface` (entity cards, 
+  modals) is only slightly lighter than `--color-bg` — enough to read 
+  as "raised," not a stark light-box-on-dark-background effect like 
+  the current screenshot shows.
+- Still meets WCAG AA contrast for text against its background — 
+  "softer" means calmer, not illegible.
+
+## Field row layout (entity cards)
+
+Fields render in a fixed-column grid, not stacked badges:
+
+[icon] [field name] [type] [active constraints as chips] [+]
+
+- **Icon column**: key icon for PK, link icon for FK, empty otherwise. 
+  Icons carry meaning — text badges must not duplicate what an icon 
+  already communicates.
+- **Constraint chips**: show only *active* constraints, single-letter 
+  (P, F, N, U), never all four slots regardless of state. An 
+  unconstrained field shows no chips.
+- **Add/edit constraints**: a single quiet `+` per row opens a popover 
+  to toggle constraints — this replaces always-visible inactive badges. 
+  Progressive disclosure over static clutter, per the Minimalism rules.
+- **FK target**: when FK is active, the target picker appears inline 
+  and indented under that specific row (not as a full-width second row 
+  with its own card-width border) — visually subordinate to the row it 
+  belongs to.
+- All rows align to the same column grid regardless of whether a row 
+  has an icon or chips — column position never shifts based on content.

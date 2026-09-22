@@ -84,3 +84,17 @@ Source of truth for what should and should not be built. If a requested feature 
 - [ ] FR-27: Dark mode, following the token set in ui-style-guide.md, 
       defaulting to system preference with a manual override in 
       Settings.
+- [ ] FR-28: Add `description` and `label` (editable, auto-suggested 
+      from field name) to the Field model — required to populate the 
+      export format's Description and Field Label columns.
+- [ ] FR-29: Google OAuth flow (Sheets + Drive scope) so the app can 
+      create/write to a sheet in the user's own Google account.
+- [ ] FR-30: Export current data model to a new Google Sheet, one 
+      table block per entity, matching the team's standard format: 
+      Table Name header, No/Field Label/Field Name/Data Type/Length/
+      Man.Opt/LOV/Default Value/Description columns, green header row.
+- [ ] FR-31: Data Type mapping table (internal SQL type → sheet's 
+      display type, e.g. VARCHAR→String, INTEGER→Integer, 
+      BOOLEAN→Boolean) — [exact full mapping pending your form]
+- [ ] FR-32: Man.Opt column logic — [pending exact convention from 
+      your form]

@@ -127,9 +127,9 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4 select-none backdrop-blur-sm">
-      <div className="w-full max-w-xl bg-surface border border-ink/30 text-ink rounded-[2px] flex flex-col max-h-[90vh] shadow-lg">
+      <div className="w-full max-w-xl bg-surface border border-ink/30 dark:border-ink-muted/30 text-ink rounded-[2px] flex flex-col max-h-[90vh] shadow-lg">
         {/* Header */}
-        <div className="px-4 py-3 border-b border-ink/20 flex items-center justify-between">
+        <div className="px-4 py-3 border-b border-ink/20 dark:border-ink-muted/20 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <h2 className="text-sm font-sans font-semibold text-ink">
               Settings & Preferences
@@ -146,14 +146,14 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
         {/* Feedback Messages */}
         {error && (
-          <div className="px-4 py-2 bg-error/10 border-b border-error/20 flex items-center space-x-2 text-xs font-mono text-error">
+          <div className="px-4 py-2 bg-error/10 border-b border-error/20 dark:border-error/30 flex items-center space-x-2 text-xs font-mono text-error">
             <AlertCircle className="w-3.5 h-3.5 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {successMsg && (
-          <div className="px-4 py-2 bg-success/10 border-b border-success/20 flex items-center space-x-2 text-xs font-mono text-success">
+          <div className="px-4 py-2 bg-success/10 border-b border-success/20 dark:border-success/30 flex items-center space-x-2 text-xs font-mono text-success">
             <CheckCircle className="w-3.5 h-3.5 shrink-0" />
             <span>{successMsg}</span>
           </div>
@@ -170,7 +170,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               <span className="text-[10px] text-ink-muted">Blueprint Theme</span>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 bg-bg p-1.5 border border-ink/20 rounded-[2px]">
+            <div className="grid grid-cols-3 gap-2 bg-bg p-1.5 border border-ink/20 dark:border-ink-muted/25 rounded-[2px]">
               {themeOptions.map((opt) => (
                 <button
                   key={opt.value}
@@ -178,7 +178,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   onClick={() => setTheme(opt.value)}
                   className={`flex items-center justify-center space-x-1.5 py-1.5 px-3 text-xs font-medium rounded-[2px] transition-all ${
                     theme === opt.value
-                      ? "bg-surface text-accent font-semibold border border-ink/20 shadow-sm"
+                      ? "bg-surface text-accent font-semibold border border-ink/20 dark:border-ink-muted/30 shadow-sm"
                       : "text-ink-muted hover:text-ink hover:bg-surface/50"
                   }`}
                 >
@@ -189,7 +189,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </div>
           </div>
 
-          <div className="border-t border-ink/10" />
+          <div className="border-t border-ink/10 dark:border-ink-muted/15" />
 
           {/* Key List Section */}
           <div className="space-y-2">
@@ -201,7 +201,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </div>
 
             {/* Security & Rotation Notice */}
-            <div className="p-2.5 bg-accent/5 border border-ink/10 rounded-[2px] flex items-start space-x-2 text-[11px] text-ink-muted">
+            <div className="p-2.5 bg-accent/5 border border-ink/10 dark:border-ink-muted/15 rounded-[2px] flex items-start space-x-2 text-[11px] text-ink-muted">
               <ShieldCheck className="w-4 h-4 text-accent shrink-0 mt-0.5" />
               <span>
                 Keys are encrypted at rest with AES-128-CBC. AI generation automatically rotates to the next key on rate limits (429) or quota errors.
@@ -209,11 +209,11 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </div>
 
             {isLoading ? (
-              <div className="p-4 border border-ink/10 bg-bg text-center text-xs font-mono text-ink-muted">
+              <div className="p-4 border border-ink/10 dark:border-ink-muted/15 bg-bg text-center text-xs font-mono text-ink-muted">
                 Loading configured keys...
               </div>
             ) : keys.length === 0 ? (
-              <div className="p-4 border border-ink/20 border-dashed bg-bg text-center rounded-[2px]">
+              <div className="p-4 border border-ink/20 dark:border-ink-muted/25 border-dashed bg-bg text-center rounded-[2px]">
                 <p className="text-xs text-ink-muted">No custom API keys configured yet.</p>
                 <p className="text-[11px] text-ink-muted mt-1 font-mono">
                   Gemini calls will fall back to server environment variables.
@@ -224,11 +224,11 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 {keys.map((k, index) => (
                   <div
                     key={k.id}
-                    className="p-2.5 bg-bg border border-ink/20 rounded-[2px] flex items-center justify-between space-x-3"
+                    className="p-2.5 bg-bg border border-ink/20 dark:border-ink-muted/25 rounded-[2px] flex items-center justify-between space-x-3"
                   >
                     {/* Priority Badge & Details */}
                     <div className="flex items-center space-x-2.5 min-w-0 flex-1">
-                      <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 bg-surface border border-ink/20 rounded-[2px] text-accent">
+                      <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 bg-surface border border-ink/20 dark:border-ink-muted/25 rounded-[2px] text-accent">
                         #{index + 1}
                       </span>
                       <div className="min-w-0 flex-1">
@@ -261,7 +261,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                       >
                         <ArrowDown className="w-3.5 h-3.5" />
                       </button>
-                      <div className="h-3 w-px bg-ink/20 mx-1" />
+                      <div className="h-3 w-px bg-ink/20 dark:bg-ink-muted/30 mx-1" />
                       <button
                         type="button"
                         onClick={() => handleDelete(k.id, k.label)}
@@ -278,12 +278,12 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           </div>
 
           {/* Add New Key Form */}
-          <div className="pt-2 border-t border-ink/10">
+          <div className="pt-2 border-t border-ink/10 dark:border-ink-muted/15">
             <span className="text-xs font-semibold uppercase tracking-wider text-ink-muted block mb-2">
               Add New Gemini API Key
             </span>
 
-            <form onSubmit={handleAddKey} className="space-y-3 bg-bg p-3 border border-ink/20 rounded-[2px]">
+            <form onSubmit={handleAddKey} className="space-y-3 bg-bg p-3 border border-ink/20 dark:border-ink-muted/25 rounded-[2px]">
               <div>
                 <label className="block text-[11px] font-medium text-ink mb-1">
                   Key Label
@@ -294,7 +294,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   onChange={(e) => setLabel(e.target.value)}
                   placeholder="e.g. Primary Developer Key, Backup Account"
                   required
-                  className="w-full text-xs px-2.5 py-1.5 bg-surface border border-ink/30 text-ink rounded-[2px] focus:outline-none focus:border-accent"
+                  className="w-full text-xs px-2.5 py-1.5 bg-surface border border-ink/30 dark:border-ink-muted/30 text-ink rounded-[2px] focus:outline-none focus:border-accent"
                 />
               </div>
 
@@ -308,7 +308,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   onChange={(e) => setRawKey(e.target.value)}
                   placeholder="AIzaSy..."
                   required
-                  className="w-full text-xs font-mono px-2.5 py-1.5 bg-surface border border-ink/30 text-ink rounded-[2px] focus:outline-none focus:border-accent"
+                  className="w-full text-xs font-mono px-2.5 py-1.5 bg-surface border border-ink/30 dark:border-ink-muted/30 text-ink rounded-[2px] focus:outline-none focus:border-accent"
                 />
               </div>
 
@@ -327,11 +327,11 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2.5 border-t border-ink/10 bg-surface flex justify-end">
+        <div className="px-4 py-2.5 border-t border-ink/10 dark:border-ink-muted/15 bg-surface flex justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="py-1 px-3 bg-surface hover:bg-bg text-ink border border-ink/30 text-xs rounded-[2px] transition-colors"
+            className="py-1 px-3 bg-surface hover:bg-bg text-ink border border-ink/30 dark:border-ink-muted/30 text-xs rounded-[2px] transition-colors"
           >
             Close
           </button>

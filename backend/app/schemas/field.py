@@ -6,6 +6,9 @@ from pydantic import BaseModel, ConfigDict, Field as PydanticField
 class FieldBase(BaseModel):
     name: str = PydanticField(..., min_length=1, max_length=100, description="Column name")
     data_type: str = PydanticField(default="VARCHAR", max_length=50, description="SQL data type")
+    label: Optional[str] = PydanticField(default=None, max_length=150, description="Human-readable field label")
+    description: Optional[str] = PydanticField(default=None, description="Field documentation/business description")
+    length: Optional[str] = PydanticField(default=None, max_length=50, description="Field length or precision")
     is_primary_key: bool = False
     is_foreign_key: bool = False
     references_entity_id: Optional[str] = None
@@ -23,6 +26,9 @@ class FieldCreate(FieldBase):
 class FieldUpdate(BaseModel):
     name: Optional[str] = PydanticField(None, min_length=1, max_length=100)
     data_type: Optional[str] = None
+    label: Optional[str] = None
+    description: Optional[str] = None
+    length: Optional[str] = None
     is_primary_key: Optional[bool] = None
     is_foreign_key: Optional[bool] = None
     references_entity_id: Optional[str] = None
