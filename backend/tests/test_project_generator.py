@@ -188,3 +188,86 @@ def test_generate_project_endpoint(client):
         assert data["project_name"] == "Fitness Tracking"
         assert len(data["entities"]) == 2
         assert len(data["relationships"]) == 1
+
+
+def test_project_generation_junction_and_orphan_cleanup():
+    """Verify that junction tables bridge M:N relationships properly and invalid orphan FKs are cleaned up."""
+    async def _test():
+        raw_step2 = {
+            "project_name": "Course Registration",
+            "description": "Student enrollment system",
+            "entities": [
+                {
+                    "name": "students",
+                    "fields": [
+                        {"name": "id", "data_type": "INTEGER", "is_primary_key": True},
+                        {"name": "full_name", "data_type": "VARCHAR"},
+                    ],
+                },
+                {
+                    "name": "courses",
+                    "fields": [
+                        {"name": "id", "data_type": "INTEGER", "is_primary_key": True},
+                        {"name": "fee", "data_type": "NUMERIC"},
+                    ],
+                },
+                {
+                    "name": "enrollments",
+                    "fields": [
+                        {"name": "id", "data_type": "INTEGER", "is_primary_key": True},
+                        {"name": "student_id", "data_type": "INTEGER", "is_foreign_key": True, "references_entity": "students"},
+                        {"name": "course_id", "data_type": "INTEGER", "is_foreign_key": True, "references_entity": "courses"},
+                        {"name": "ghost_id", "data_type": "INTEGER", "is_foreign_key": True, "references_entity": "nonexistent_table"},
+                    ],
+                },
+            ],
+            "relationships": [
+                {
+                    "source_entity": "enrollments",
+                    "source_field": "student_id",
+                    "target_entity": "students",
+                    "target_field": "id",
+                    "cardinality": "1:many",
+                },
+                {
+                    "source_entity": "enrollments",
+                    "source_field": "course_id",
+                    "target_entity": "courses",
+                    "target_field": "id",
+                    "cardinality": "1:many",
+                },
+                {
+                    "source_entity": "enrollments",
+                    "source_field": "ghost_id",
+                    "target_entity": "nonexistent_table",
+                    "target_field": "id",
+                    "cardinality": "1:many",
+                },
+            ],
+        }
+
+        with patch.object(ProjectAIGenerator, "_call_gemini_with_fallback", side_effect=[
+            {"project_name": "Course Registration", "tables": [{"name": "students"}, {"name": "courses"}, {"name": "enrollments"}]},
+            raw_step2
+        ]):
+            project = await ProjectAIGenerator.generate_project("course registration")
+            assert len(project.entities) == 3
+            # Invalid relationship to nonexistent_table filtered out
+            assert len(project.relationships) == 2
+
+            enrollments = next(e for e in project.entities if e.name == "enrollments")
+            ghost_field = next(f for f in enrollments.fields if f.name == "ghost_id")
+            # Orphan FK cleaned up
+            assert ghost_field.is_foreign_key is False
+            assert ghost_field.references_entity is None
+
+            # Numeric field precision enriched on courses.fee
+            courses = next(e for e in project.entities if e.name == "courses")
+            fee_field = next(f for f in courses.fields if f.name == "fee")
+            assert fee_field.length == "10,2"
+
+            # Audit fields present
+            assert any(f.name == "created_at" for f in enrollments.fields)
+
+    asyncio.run(_test())
+

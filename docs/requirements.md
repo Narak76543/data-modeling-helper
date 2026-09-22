@@ -98,3 +98,21 @@ Source of truth for what should and should not be built. If a requested feature 
       BOOLEAN→Boolean) — [exact full mapping pending your form]
 - [ ] FR-32: Man.Opt column logic — [pending exact convention from 
       your form]
+- [ ] FR-33: AI-generated fields (FR-11, FR-18) populate label, 
+      description, and length using the same fields added in FR-28, 
+      not just name/type/constraints.
+- [ ] FR-34: AI generation prefers precise types (NUMERIC(10,2) for 
+      currency, TIMESTAMP for datetime-sensitive fields, UUID vs 
+      auto-increment INTEGER chosen deliberately based on context) 
+      over generic defaults.
+- [ ] FR-35: AI-generated entities include created_at/updated_at audit 
+      columns by convention, unless the described table is clearly a 
+      pure lookup/reference table (e.g. a static "status" enum table).
+- [ ] FR-36: Multi-entity generation (FR-18) detects many-to-many 
+      relationships from the project description and generates a 
+      junction/pivot table automatically, rather than an invalid 
+      direct M:N connection.
+- [ ] FR-37: AI-generated field/entity names are checked against the 
+      existing validation engine (FR-4) naming rules before being 
+      returned — generation should pass validation on first output, 
+      not rely on the user fixing it after.

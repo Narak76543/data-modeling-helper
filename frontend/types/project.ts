@@ -3,6 +3,9 @@ import type { SQLDataType } from "./canvas";
 export interface AIGeneratedField {
   name: string;
   dataType: SQLDataType;
+  label?: string;
+  description?: string;
+  length?: string;
   isPrimaryKey?: boolean;
   isForeignKey?: boolean;
   referencesEntity?: string;

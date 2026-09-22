@@ -138,8 +138,8 @@ def test_key_rotation_on_rate_limit():
             with patch("app.services.ai.generator._send_gemini_request", side_effect=mock_send_request):
                 entity = await EntityAIGenerator.generate_entity("customer table")
                 assert entity.name == "customers"
-                assert len(entity.fields) == 1
                 assert entity.fields[0].name == "id"
+                assert len(entity.fields) == 3  # id, created_at, updated_at
                 assert call_count == 2
 
     asyncio.run(_run_test())

@@ -13,6 +13,9 @@ SNAKE_CASE_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
 class AIGeneratedField(BaseModel):
     name: str = Field(..., min_length=1, max_length=100, description="Column name in snake_case")
     data_type: str = Field(default="VARCHAR", description="SQL data type from standard list")
+    label: Optional[str] = Field(default=None, description="Human-readable column label")
+    description: Optional[str] = Field(default=None, description="Business or technical purpose of field")
+    length: Optional[str] = Field(default=None, description="Length or precision constraint (e.g. 255, 10,2, 36)")
     is_primary_key: bool = False
     is_foreign_key: bool = False
     references_entity: Optional[str] = None
@@ -20,6 +23,7 @@ class AIGeneratedField(BaseModel):
     is_nullable: bool = True
     is_unique: bool = False
     default_value: Optional[str] = None
+
 
     @field_validator("name")
     @classmethod
@@ -54,6 +58,7 @@ class AIGeneratedField(BaseModel):
 
 class AIGeneratedEntity(BaseModel):
     name: str = Field(..., min_length=1, max_length=100, description="Entity name in snake_case")
+    description: Optional[str] = None
     fields: List[AIGeneratedField] = Field(..., min_length=1, description="List of columns for this entity")
 
     @field_validator("name")
@@ -63,3 +68,4 @@ class AIGeneratedEntity(BaseModel):
         if not SNAKE_CASE_PATTERN.match(clean):
             clean = re.sub(r"[^a-z0-9_]", "", clean) or "entity"
         return clean
+

@@ -10,27 +10,37 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.security import decrypt_api_key
 from app.models.api_key import ApiKey
-from app.services.ai.models import AIGeneratedEntity
+from app.services.ai.models import AIGeneratedEntity, AIGeneratedField
 
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """You are an expert relational database designer for the "Data Modeling Helper" tool.
-Your job is to generate EXACTLY ONE relational database table/entity based on the user's short prompt.
+SYSTEM_PROMPT = """You are an expert relational database architect for the "Data Modeling Helper" tool.
+Your job is to generate EXACTLY ONE production-grade relational database table based on the user's short prompt.
 
-STRICT CONSTRAINTS (CRITICAL):
-1. Return EXACTLY ONE entity matching the requested domain.
-2. NEVER generate multiple entities or tables.
-3. NEVER generate foreign keys or relationships to other tables (FR-14: relationships must remain a manual user step).
-4. Always include at least one Primary Key field (e.g. `id` INTEGER or UUID).
-5. Only use these standard SQL types: INTEGER, BIGINT, VARCHAR, TEXT, BOOLEAN, TIMESTAMP, DATE, NUMERIC, UUID, JSONB.
-6. Table name and column names must strictly use snake_case.
-7. Output strictly valid JSON matching this schema:
+CRITICAL ENGINEERING CONSTRAINTS:
+1. Return EXACTLY ONE entity matching the requested domain. Never generate multiple tables.
+2. NEVER generate foreign keys or relationships to other tables (FR-14: relationships remain a manual user step for single tables).
+3. Primary Key: Always include an `id` Primary Key (e.g. `INTEGER` or `UUID`). In the field's `description`, explicitly state the PK strategy reasoning (e.g. "Sequential integer primary key" or "UUID primary key for distributed security").
+4. Human Labels & Descriptions: Every field MUST have a clean, human-readable `label` (e.g. "Unit Price", "Email Address") and a clear technical/business `description` explaining its purpose and constraints.
+5. Type Precision & Sizing:
+   - Monetary/Currency/Financial amounts: MUST use `NUMERIC` with explicit length/precision (e.g. `10,2` or `12,2`) and sensible default (e.g. "0.00"). NEVER use bare `INTEGER` or unparameterized `NUMERIC`.
+   - Event Timestamps vs Calendar Dates: Use `TIMESTAMP` for exact event moments with default "CURRENT_TIMESTAMP". Use `DATE` only for pure calendar dates without time (e.g. `birth_date`).
+   - String Lengths: Specify sensible length for `VARCHAR` (e.g. `255`, `100`, `50`).
+6. Audit Columns: Standard entities MUST include `created_at` and `updated_at` (`TIMESTAMP`, `is_nullable: false`, `default_value: "CURRENT_TIMESTAMP"`).
+   - Exception rule: Small static lookup/reference tables (e.g. `status_types`) may omit `updated_at`.
+7. Allowed SQL Types: INTEGER, BIGINT, VARCHAR, TEXT, BOOLEAN, TIMESTAMP, DATE, NUMERIC, UUID, JSONB.
+8. Naming: Table name (plural) and column names must strictly use snake_case.
+
+Output strictly valid JSON matching this schema:
 {
-  "name": "string (table name in snake_case)",
+  "name": "string (table name in snake_case, plural)",
   "fields": [
     {
       "name": "string (column name in snake_case)",
+      "label": "string (human-readable label, e.g. 'Email Address')",
+      "description": "string (business/technical description)",
       "data_type": "INTEGER | BIGINT | VARCHAR | TEXT | BOOLEAN | TIMESTAMP | DATE | NUMERIC | UUID | JSONB",
+      "length": "string or null (e.g. '255', '10,2', '36')",
       "is_primary_key": boolean,
       "is_nullable": boolean,
       "is_unique": boolean,
@@ -39,6 +49,7 @@ STRICT CONSTRAINTS (CRITICAL):
   ]
 }
 """
+
 
 FALLBACK_MODELS = [
     "gemini-3.5-flash",
@@ -178,7 +189,102 @@ class EntityAIGenerator:
         return models
 
     @classmethod
+    def _format_label(cls, name: str) -> str:
+        tokens = name.replace("-", "_").split("_")
+        formatted = []
+        acronyms = {"id", "fk", "pk", "url", "ip", "api", "uuid", "sql", "db", "lc", "doc", "uri"}
+        for t in tokens:
+            if t.lower() in acronyms:
+                formatted.append(t.upper())
+            else:
+                formatted.append(t.capitalize())
+        return " ".join(formatted)
+
+    @classmethod
+    def _post_process_entity(cls, entity: AIGeneratedEntity) -> AIGeneratedEntity:
+        """
+        Auto-correct and enrich entity fields with developer-level defaults (FR-33, FR-34, FR-35, FR-37):
+        - Ensure label, description, and length are populated.
+        - Ensure primary key exists (injects 'id' if omitted).
+        - Enforce NUMERIC length/precision for monetary fields.
+        - Ensure standard audit columns (created_at, updated_at) are present unless pure lookup.
+        """
+        fields = list(entity.fields)
+
+        # 1. Primary Key check (FR-37)
+        has_pk = any(f.is_primary_key for f in fields)
+        if not has_pk:
+            pk_field = AIGeneratedField(
+                name="id",
+                data_type="INTEGER",
+                label="ID",
+                description="Primary key auto-increment integer identifier",
+                length=None,
+                is_primary_key=True,
+                is_nullable=False,
+                is_unique=True,
+            )
+            fields.insert(0, pk_field)
+
+        # 2. Enrich and normalize each field
+        for f in fields:
+            if not f.label:
+                f.label = cls._format_label(f.name)
+            if not f.description:
+                if f.is_primary_key:
+                    f.description = f"Primary key identifier for {entity.name}"
+                elif f.is_foreign_key:
+                    f.description = f"Foreign key reference to {f.references_entity or 'related table'}"
+                else:
+                    f.description = f"{f.label} attribute"
+
+            # Precision/length defaults
+            if f.data_type == "NUMERIC" and not f.length:
+                f.length = "10,2"
+            elif f.data_type == "VARCHAR" and not f.length:
+                f.length = "255"
+            elif f.data_type == "UUID" and not f.length:
+                f.length = "36"
+
+        # 3. Audit columns (FR-35)
+        lookup_suffixes = ("status", "statuses", "type", "types", "role", "roles", "category", "categories", "lookup", "enum")
+        is_lookup_name = any(entity.name.lower().endswith(suffix) or entity.name.lower() == suffix for suffix in lookup_suffixes)
+        is_lookup = is_lookup_name and len(fields) <= 3
+        existing_names = {f.name.lower() for f in fields}
+
+        if not is_lookup:
+            if "created_at" not in existing_names:
+                fields.append(
+                    AIGeneratedField(
+                        name="created_at",
+                        data_type="TIMESTAMP",
+                        label="Created At",
+                        description="Timestamp when the record was created",
+                        is_nullable=False,
+                        default_value="CURRENT_TIMESTAMP",
+                    )
+                )
+            if "updated_at" not in existing_names:
+                fields.append(
+                    AIGeneratedField(
+                        name="updated_at",
+                        data_type="TIMESTAMP",
+                        label="Updated At",
+                        description="Timestamp when the record was last modified",
+                        is_nullable=False,
+                        default_value="CURRENT_TIMESTAMP",
+                    )
+                )
+
+        return AIGeneratedEntity(
+            name=entity.name,
+            description=getattr(entity, "description", None),
+            fields=fields,
+        )
+
+    @classmethod
     async def generate_entity(cls, prompt: str, db: Optional[Session] = None) -> AIGeneratedEntity:
+
         """
         Call Gemini Interactions API with automatic multi-key and multi-model fallback.
         Seamlessly falls back to secondary models on 503 (high demand / busy) and rotates keys on 429/403.
@@ -236,7 +342,9 @@ class EntityAIGenerator:
 
                     # Strict Pydantic validation
                     entity = AIGeneratedEntity.model_validate(parsed_json)
+                    entity = EntityAIGenerator._post_process_entity(entity)
                     return entity
+
 
                 except GeminiRequestError as ge:
                     # If model is specifically busy / experiencing high demand (503), try next fallback model on same key

@@ -103,9 +103,16 @@ def test_generate_entity_with_interactions_api_steps():
             with patch("app.services.ai.generator._send_gemini_request", return_value=steps_response):
                 entity = await EntityAIGenerator.generate_entity("address table")
                 assert entity.name == "addresses"
-                assert len(entity.fields) == 4
+                # 4 original fields + 2 audit fields (created_at, updated_at) = 6
+                assert len(entity.fields) == 6
                 assert entity.fields[0].name == "id"
                 assert entity.fields[0].is_primary_key is True
+                assert entity.fields[0].label == "ID"
+                assert "addresses" in entity.fields[0].description
+                # Audit columns
+                field_names = [f.name for f in entity.fields]
+                assert "created_at" in field_names
+                assert "updated_at" in field_names
 
     asyncio.run(_test())
 
@@ -122,7 +129,7 @@ def test_generate_entity_with_model_503_fallback():
                     "content": [
                         {
                             "type": "text",
-                            "text": '{"name": "addresses", "fields": [{"name": "id", "data_type": "INTEGER", "is_primary_key": true}]}',
+                            "text": '{"name": "status_types", "fields": [{"name": "id", "data_type": "INTEGER", "is_primary_key": true}, {"name": "code", "data_type": "VARCHAR"}]}',
                         }
                     ],
                 }
@@ -141,9 +148,41 @@ def test_generate_entity_with_model_503_fallback():
         mock_candidates = [("Test Key", "fake_key_123")]
         with patch.object(EntityAIGenerator, "_get_candidate_keys", return_value=mock_candidates):
             with patch("app.services.ai.generator._send_gemini_request", side_effect=mock_send):
-                entity = await EntityAIGenerator.generate_entity("address table")
-                assert entity.name == "addresses"
+                entity = await EntityAIGenerator.generate_entity("status table")
+                assert entity.name == "status_types"
                 assert len(call_log) >= 2
                 assert call_log[0] == "gemini-3.5-flash"
 
     asyncio.run(_test())
+
+
+def test_post_process_entity_enrichment():
+    """Test developer-level field enrichment: PK injection, label/description, NUMERIC precision, audit fields."""
+    raw_entity = AIGeneratedEntity(
+        name="products",
+        fields=[
+            AIGeneratedField(name="unit_price", data_type="NUMERIC"),
+            AIGeneratedField(name="sku_code", data_type="VARCHAR"),
+        ],
+    )
+    processed = EntityAIGenerator._post_process_entity(raw_entity)
+    field_dict = {f.name: f for f in processed.fields}
+
+    # Injected PK
+    assert "id" in field_dict
+    assert field_dict["id"].is_primary_key is True
+
+    # Numeric precision (FR-34)
+    assert field_dict["unit_price"].length == "10,2"
+    assert field_dict["unit_price"].label == "Unit Price"
+    assert field_dict["unit_price"].description is not None
+
+    # String length
+    assert field_dict["sku_code"].length == "255"
+
+    # Audit fields (FR-35)
+    assert "created_at" in field_dict
+    assert "updated_at" in field_dict
+    assert field_dict["created_at"].data_type == "TIMESTAMP"
+    assert field_dict["created_at"].default_value == "CURRENT_TIMESTAMP"
+

@@ -5,6 +5,9 @@ import type { AIGeneratedProject } from "@/types/project";
 export interface AIGeneratedField {
   name: string;
   dataType: SQLDataType;
+  label?: string;
+  description?: string;
+  length?: string;
   isPrimaryKey?: boolean;
   isForeignKey?: boolean;
   referencesEntity?: string;
@@ -16,6 +19,7 @@ export interface AIGeneratedField {
 
 export interface AIGeneratedEntity {
   name: string;
+  description?: string;
   fields: AIGeneratedField[];
 }
 
@@ -48,10 +52,17 @@ export async function generateEntityWithAI(prompt: string): Promise<AIGeneratedE
   const data = await response.json();
   return {
     name: data.name,
+    description: data.description,
     fields: data.fields.map((f: any) => ({
       name: f.name,
       dataType: f.data_type,
+      label: f.label,
+      description: f.description,
+      length: f.length,
       isPrimaryKey: f.is_primary_key,
+      isForeignKey: f.is_foreign_key,
+      referencesEntity: f.references_entity,
+      referencesField: f.references_field,
       isNullable: f.is_nullable,
       isUnique: f.is_unique,
       defaultValue: f.default_value,
@@ -93,6 +104,9 @@ export async function generateProjectWithAI(prompt: string): Promise<AIGenerated
       fields: e.fields.map((f: any) => ({
         name: f.name,
         dataType: f.data_type,
+        label: f.label,
+        description: f.description,
+        length: f.length,
         isPrimaryKey: f.is_primary_key,
         isForeignKey: f.is_foreign_key,
         referencesEntity: f.references_entity,
