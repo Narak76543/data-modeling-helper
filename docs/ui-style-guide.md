@@ -119,3 +119,25 @@ Rules for dark mode specifically:
   the current screenshot shows.
 - Still meets WCAG AA contrast for text against its background — 
   "softer" means calmer, not illegible.
+
+## Field row layout (entity cards)
+
+Fields render in a fixed-column grid, not stacked badges:
+
+[icon] [field name] [type] [active constraints as chips] [+]
+
+- **Icon column**: key icon for PK, link icon for FK, empty otherwise. 
+  Icons carry meaning — text badges must not duplicate what an icon 
+  already communicates.
+- **Constraint chips**: show only *active* constraints, single-letter 
+  (P, F, N, U), never all four slots regardless of state. An 
+  unconstrained field shows no chips.
+- **Add/edit constraints**: a single quiet `+` per row opens a popover 
+  to toggle constraints — this replaces always-visible inactive badges. 
+  Progressive disclosure over static clutter, per the Minimalism rules.
+- **FK target**: when FK is active, the target picker appears inline 
+  and indented under that specific row (not as a full-width second row 
+  with its own card-width border) — visually subordinate to the row it 
+  belongs to.
+- All rows align to the same column grid regardless of whether a row 
+  has an icon or chips — column position never shifts based on content.
